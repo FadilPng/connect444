@@ -12,6 +12,19 @@ const PEER_OPTS = {config:{iceServers:[
   {urls:"turn:openrelay.metered.ca:443?transport=tcp",username:TURN_USER,credential:TURN_PASS},
   {urls:"turns:openrelay.metered.ca:443?transport=tcp",username:TURN_USER,credential:TURN_PASS}
 ]}};
+// Opsional: tempel URL kredensial dari dashboard metered.ca (…metered.live/api/v1/turn/credentials?apiKey=…) untuk memakai TURN pribadi.
+const METERED_URL = "";
+async function peerOpts() {
+  let servers = PEER_OPTS.config.iceServers;
+  if (METERED_URL) {
+    try { servers = [{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun.cloudflare.com:3478"},...await (await fetch(METERED_URL)).json()]; } catch (_) {}
+  }
+  const config = {iceServers:servers};
+  // Tes: buka game dengan ?relay=1 di KEDUA pemain untuk memaksa lewat TURN.
+  if (new URLSearchParams(location.search).has("relay")) config.iceTransportPolicy = "relay";
+  return {config};
+}
+function netDiag(n) { const c = n.cands || {}; return `ICE ${n.ice || "belum mulai"}; kandidat host ${c.host || 0}, srflx ${c.srflx || 0}, relay ${c.relay || 0}`; }
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const NET_METHODS = ["drawOffer","chooseCard","chooseOption","chooseTarget","chooseLane","actOnCell","drop","pass"];
 const cleanName = v => String(v || "").replace(/[^\p{L}\p{N} _.-]/gu,"").trim().slice(0,14);
@@ -32,11 +45,12 @@ function showWait(title,body) {
   $("waitLeave").onclick = showMenu;
 }
 function netFail(text) { netClose(); closeDialog(false); toast(text); }
-function netHost(name,tries = 0) {
+async function netHost(name,tries = 0) {
   if (typeof Peer === "undefined") { toast("Library online gagal dimuat. Periksa koneksi internet."); return; }
   if (!tries) showWait("CREATING ROOM.","Menyiapkan room...");
+  const opts = await peerOpts(); if (!ui.modal) return;
   const code = Array.from({length:5},() => CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join("");
-  const n = ui.net = {host:true,me:1,name,opp:"",ready:{},peer:new Peer(PEER_PREFIX+code,PEER_OPTS)};
+  const n = ui.net = {host:true,me:1,name,opp:"",ready:{},peer:new Peer(PEER_PREFIX+code,opts)};
   n.peer.on("open",() => { showWait("WAITING FOR OPPONENT.",`<div class="room-code">${code}</div>Bagikan kode ini ke lawanmu. Loadout-mu tetap rahasia.`); });
   n.peer.on("connection",conn => { if (n.conn) conn.close(); else netBind(n,conn); });
   n.peer.on("error",e => {
@@ -44,16 +58,23 @@ function netHost(name,tries = 0) {
     else netFail("Koneksi gagal: "+e.type);
   });
 }
-function netJoin(name,code) {
+async function netJoin(name,code) {
   if (typeof Peer === "undefined") { toast("Library online gagal dimuat. Periksa koneksi internet."); return; }
   showWait("CONNECTING.",`Menghubungkan ke room ${code}...`);
-  const n = ui.net = {host:false,me:2,name,opp:"",ready:{},peer:new Peer(PEER_OPTS)};
-  n.peer.on("open",() => netBind(n,n.peer.connect(PEER_PREFIX+code,{reliable:true})));
+  const opts = await peerOpts(); if (!ui.modal) return;
+  const n = ui.net = {host:false,me:2,name,opp:"",ready:{},peer:new Peer(opts)};
+  n.peer.on("open",() => { console.log("[net] signaling ok, menghubungi host"); netBind(n,n.peer.connect(PEER_PREFIX+code,{reliable:true})); });
   n.peer.on("error",e => netFail(e.type === "peer-unavailable" ? "Room tidak ditemukan. Periksa kodenya." : "Koneksi gagal: "+e.type));
-  setTimeout(() => { if (ui.net === n && !n.opp) netFail("Waktu koneksi habis. Coba lagi."); },25000);
+  setTimeout(() => { if (ui.net === n && !n.opp) { console.warn("[net] timeout",netDiag(n)); netFail(`Waktu koneksi habis. ${netDiag(n)}`); }; },25000);
 }
 function netBind(n,conn) {
   n.conn = conn;
+  const pc = conn.peerConnection;
+  if (pc) {
+    n.cands = {};
+    pc.addEventListener("icecandidate",e => { const t = e.candidate?.type; if (t) n.cands[t] = (n.cands[t] || 0)+1; });
+    pc.addEventListener("iceconnectionstatechange",() => { n.ice = pc.iceConnectionState; console.log("[net] ICE",n.ice,n.cands); });
+  }
   conn.on("open",() => {
     n.last = Date.now();
     n.hb = setInterval(() => {
@@ -67,7 +88,7 @@ function netBind(n,conn) {
       conn.on("iceStateChanged",st => {
         if (st !== "failed" || n.opp) return;
         if (n.host) toast("Koneksi ke tamu gagal. Minta dia coba lagi.");
-        else netFail("Koneksi langsung ke host gagal (jaringan memblokir P2P). Coba jaringan lain atau pasang TURN sendiri.");
+        else netFail(`Koneksi langsung ke host gagal. ${netDiag(n)}`);
       });
   conn.on("close",() => netLost(n));
 }
