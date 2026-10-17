@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Fourfold — Connect 4, remixed</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="top">
+        <div class="brand">
+          <div class="mark">4</div>
+          <div>
+            <h1>FOURFOLD</h1>
+            <small>CONNECT FOUR, REMIXED</small>
+          </div>
+        </div>
+        <div class="tag">LOCAL • 2 PLAYERS ★ SHOWTIME</div>
+      </header>
+      <main class="layout">
+        <section class="panel game">
+          <div id="turnCutin" class="turn-cutin" aria-hidden="true"></div>
+          <div class="game-head">
+            <div class="turnline">
+              <div id="turnAvatar" class="avatar p1">P1</div>
+              <div>
+                <strong id="turnName">Player 1's turn</strong
+                ><small id="turnPrompt">Choose your move</small>
+              </div>
+            </div>
+            <div class="scores">
+              <div class="score">P1 <b id="count1">0</b></div>
+              <div class="score">P2 <b id="count2">0</b></div>
+            </div>
+          </div>
+          <div class="board-wrap">
+            <div class="board-hint">★ CLICK A COLUMN — OR A ROW WHEN GRAVITY TURNS SIDEWAYS ★</div>
+            <div id="board" class="board"></div>
+            <div class="board-tools">
+              <span id="gravityLabel">▼ Gravity: down</span
+              ><span id="boardInfo">7 columns · connect 4</span>
+            </div>
+            <div id="effectBar" class="effect-bar"></div>
+          </div>
+          <div class="actions">
+            <button id="dropAction" class="action primary">
+              ▼ DROP!<span class="sub">…then click a column / row on the board</span></button
+            ><button id="cardAction" class="action">
+              ✦ CARDS!<span class="sub">Reveal 3 random action cards</span>
+            </button>
+          </div>
+          <button id="passAction" class="btn" hidden>Pass — no legal action</button>
+          <div id="gameNotice" class="notice"></div>
+        </section>
+        <aside class="panel side">
+          <div>
+            <div class="side-head">
+              <h2>Your loadout</h2>
+              <span id="budgetLabel"></span>
+            </div>
+            <div id="hand" class="hand"></div>
+          </div>
+          <div class="feed">
+            <h2>Match log</h2>
+            <div id="log" class="log"></div>
+          </div>
+          <div class="rules">
+            <b>Quick rules</b><br />Take turns dropping a coin or using a card.
+            First to connect 4 wins. Card offers are drawn by weight;
+            higher-weight cards are rarer. Cards can be used again if drawn
+            again. Shielded coins resist removal. Neutral decoys block spaces
+            but don't count toward a win.<br /><br /><button
+              class="btn"
+              id="newGame">
+              New match / edit loadouts
+            </button>
+          </div>
+        </aside>
+      </main>
+    </div>
+    <div id="modalRoot"></div>
+    <script src="cards.js"></script>
+    <script src="card-system.js"></script>
+    <script src="effects.js"></script>
+    <script src="game.js"></script>
+  <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4bede43fab9fda2',t:'MTc5MjIzNTU0Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
