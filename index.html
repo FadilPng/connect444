@@ -7,6 +7,7 @@
   <meta name="description" content="Fourfold, permainan Connect Four dua pemain dengan 23 kartu taktis.">
   <title>FOURFOLD / Tactical Connection</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -326,16 +327,73 @@
     @media(min-width:601px) and (max-width:800px) { .catalog { grid-template-columns:repeat(5,minmax(0,1fr)); } }
     @media(max-width:600px) { .cell > .coin.ghost { inset:11.5%; } .filters { gap:12px; } }
     html[data-motion="off"] *,html[data-motion="off"] *::before,html[data-motion="off"] *::after { animation-duration:.01ms !important; animation-delay:0ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    /* ---------- MAIN MENU ---------- */
+    .menu-view { position:fixed; inset:0; z-index:70; overflow:auto; background:var(--bg); isolation:isolate; display:grid; grid-template-rows:auto 1fr auto; }
+    .menu-view::before { content:""; position:absolute; inset:0; z-index:-2; background-image:linear-gradient(#657b8012 1px,transparent 1px),linear-gradient(90deg,#657b8012 1px,transparent 1px); background-size:48px 48px; }
+    .menu-view::after { content:""; position:absolute; top:0; right:0; width:120px; height:3px; background:var(--lime); }
+    .menu-emblem { position:absolute; left:-8vmin; top:50%; width:100vmin; height:108vmin; transform:translateY(-50%); z-index:-1; color:#e5e8df; opacity:.07; pointer-events:none; }
+    .menu-emblem svg { width:100%; height:100%; }
+    .menu-top,.menu-foot { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:28px 56px; font-family:var(--mono); font-size:10px; letter-spacing:.14em; color:#8e969a; }
+    .menu-top span { display:flex; align-items:center; gap:9px; }
+    .menu-foot { border-top:1px solid #30373a; padding-block:18px; font-size:9px; letter-spacing:.1em; color:#65747a; }
+    .menu-main { display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,440px); align-items:center; gap:56px; padding:20px 56px; }
+    .menu-title { animation:viewIn .7s ease both; }
+    .menu-title .eyebrow { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    .menu-title .eyebrow::before { content:""; width:17px; height:2px; background:var(--lime); }
+    .menu-title h1 { font-family:var(--display); font-weight:600; font-size:clamp(68px,13vw,172px); line-height:.86; letter-spacing:.05em; }
+    .menu-title p { font-size:15px; color:#9ba4a8; margin-top:26px; max-width:38ch; line-height:1.6; }
+    .menu-list { display:grid; gap:14px; }
+    .menu-mode { position:relative; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:20px; min-height:116px; padding:22px 24px; text-align:left; background:#131719; border:1px solid #3a4245; border-top:2px solid #e8eae1; transition:background .2s,color .2s,transform .2s,border-color .2s; animation:modeIn .6s cubic-bezier(.2,.8,.2,1) backwards; }
+    .menu-mode:nth-child(1) { animation-delay:.18s; }
+    .menu-mode:nth-child(2) { animation-delay:.3s; }
+    .mode-icons { display:flex; gap:4px; }
+    .mode-icons span { color:var(--c); transition:color .2s; }
+    .mode-icons svg { width:30px; height:30px; }
+    .mode-text strong { display:block; font-family:var(--display); font-size:36px; font-weight:600; letter-spacing:.06em; line-height:1; }
+    .mode-text small { display:block; margin-top:8px; font-size:12px; color:#8e969a; transition:color .2s; }
+    .mode-arrow svg { width:24px; height:24px; color:#737d81; transition:color .2s,transform .2s; }
+    .mode-tag { position:absolute; top:9px; right:12px; display:flex; align-items:center; gap:7px; color:#69787d; font-size:8px; }
+    .mode-tag i { width:5px; height:5px; background:var(--orange); }
+    .menu-mode:hover,.menu-mode:focus-visible { background:var(--lime); color:#1d241c; border-color:var(--lime); transform:translateX(-10px); }
+    .menu-mode:hover .mode-icons span,.menu-mode:focus-visible .mode-icons span,.menu-mode:hover .mode-arrow svg,.menu-mode:focus-visible .mode-arrow svg { color:#20291d; }
+    .menu-mode:hover .mode-arrow svg,.menu-mode:focus-visible .mode-arrow svg { transform:translateX(5px); }
+    .menu-mode:hover .mode-text small,.menu-mode:focus-visible .mode-text small,.menu-mode:hover .mode-tag,.menu-mode:focus-visible .mode-tag { color:#3d4d31; }
+    .menu-mode::after { content:""; position:absolute; right:0; bottom:0; width:13px; height:13px; background:linear-gradient(135deg,transparent 48%,var(--bg) 49%); opacity:0; transition:opacity .2s; }
+    .menu-mode:hover::after,.menu-mode:focus-visible::after { opacity:1; }
+    .join-box { cursor:default; }
+    .join-box > span { flex:1; min-width:0; }
+    .join-box input { width:100%; margin-top:8px; background:#131719; border:1px solid #53636b; color:var(--text); font-family:var(--mono); font-size:16px; letter-spacing:.3em; padding:9px 10px; text-transform:uppercase; }
+    .join-box .subtle-button { width:100%; margin-top:8px; }
+    .dialog-status { display:flex; align-items:center; gap:9px; margin-top:22px; padding-top:16px; border-top:1px solid #414e54; color:#7e939d; font-family:var(--mono); font-size:9px; letter-spacing:.08em; }
+    .dialog-status i { width:5px; height:5px; background:var(--orange); }
+    @keyframes modeIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:none; } }
+    @media(max-width:900px) { .menu-main { grid-template-columns:1fr; gap:34px; padding:12px 24px 28px; align-content:center; } .menu-top,.menu-foot { padding-inline:24px; } .menu-top { padding-block:20px; } .menu-title p { font-size:13px; margin-top:18px; } .menu-mode:hover,.menu-mode:focus-visible { transform:translateX(-4px); } }
+    @media(max-width:600px) { .menu-foot span:last-child { display:none; } .mode-text strong { font-size:30px; } .menu-mode { min-height:100px; padding:20px 16px; gap:14px; } .option-grid.stack { grid-template-columns:1fr; } }
+    .dialog-field { width:100%; background:#131719; border:1px solid #53636b; color:var(--text); font-family:var(--mono); font-size:14px; letter-spacing:.1em; padding:12px; margin:6px 0 20px; }
+    .room-code { font-family:var(--display); font-size:76px; font-weight:600; letter-spacing:.2em; color:var(--lime); line-height:1; margin:6px 0 16px; }
+    .dialog .subtle-button { margin-top:20px; }
   </style>
 </head>
 <body>
-  <div class="app-shell">
+  <main class="menu-view" id="menuView" aria-label="Menu utama">
+    <div class="menu-emblem" aria-hidden="true"><svg viewBox="0 0 44 48" fill="none" stroke="currentColor" stroke-width=".35"><path d="M22 2 42 43H2L22 2Z"/><path d="M22 12 33 36H11l11-24Z"/><path d="m16 29 8-11v15m-10-6h15"/></svg></div>
+    <div class="menu-top"><span><i class="status-dot"></i>SYSTEM ONLINE</span><span>FF / VER 1.0</span></div>
+    <div class="menu-main">
+      <header class="menu-title"><div class="eyebrow">TACTICAL CONNECTION</div><h1>FOURFOLD</h1><p>Empat koin. Satu koneksi. Keunggulan taktis dengan 23 kartu.</p></header>
+      <nav class="menu-list" aria-label="Pilih mode permainan">
+        <button type="button" class="menu-mode" data-mode="local"><span class="mode-icons"><span style="--c:var(--cyan)" data-icon="operator1"></span><span style="--c:var(--orange)" data-icon="operator2"></span></span><span class="mode-text"><strong>LOCAL COOP</strong><small>Dua operator, satu perangkat.</small></span><span class="mode-arrow" data-icon="arrow-right"></span><span class="mode-tag">OFFLINE</span></button>
+        <button type="button" class="menu-mode" data-mode="online"><span class="mode-icons"><span style="--c:var(--lime)" data-icon="signal"></span></span><span class="mode-text"><strong>ONLINE</strong><small>Tantang lawan lewat kode room.</small></span><span class="mode-arrow" data-icon="arrow-right"></span><span class="mode-tag"><i></i>STANDBY</span></button>
+      </nav>
+    </div>
+    <div class="menu-foot"><span>PILIH MODE / TEKAN 1 ATAU 2</span><span>FOURFOLD // CONNECT FOUR, REDEFINED</span></div>
+  </main>
+  <div class="app-shell" id="appShell" hidden>
     <aside class="rail" aria-label="Navigasi utama">
       <button class="rail-brand" id="brandHome" aria-label="Fourfold, kembali ke loadout"><svg viewBox="0 0 44 48" fill="none" aria-hidden="true"><path d="M22 2 42 43H2L22 2Z" stroke="#e5e8df" stroke-width="1.5"/><path d="M22 12 33 36H11l11-24Z" fill="#d9ed7b"/><path d="m16 29 8-11v15m-10-6h15" stroke="#192018" stroke-width="2.3"/></svg></button>
       <nav class="rail-nav"><button class="rail-button active" id="navLoadout" aria-label="Loadout" aria-current="page"><span data-icon="grid"></span><span>LOADOUT</span></button><button class="rail-button" id="navBattle" aria-label="Operation"><span data-icon="crosshair"></span><span>OPERATION</span></button><button class="rail-button" id="navGuide" aria-label="Field guide"><span data-icon="book"></span><span>FIELD GUIDE</span></button></nav>
       <div class="rail-bottom"><div class="rail-code">FF / TACTICAL CONNECTION</div><button class="rail-button" id="railMotion" aria-label="Pengaturan animasi"><span data-icon="settings"></span><span>SYSTEM</span></button></div>
     </aside>
-    <header class="topbar"><div class="wordmark"><h1>FOURFOLD</h1><span class="brand-divider"></span><small>TACTICAL CONNECTION<br>LOCAL MULTIPLAYER SYSTEM</small></div><div class="top-actions"><span class="session-label mono"><i class="status-dot"></i>LOCAL / 2 OPERATORS</span><button class="icon-button" id="guideButton"><span data-icon="book"></span>FIELD GUIDE</button></div></header>
+    <header class="topbar"><div class="wordmark"><h1>FOURFOLD</h1><span class="brand-divider"></span><small>TACTICAL CONNECTION<br>LOCAL MULTIPLAYER SYSTEM</small></div><div class="top-actions"><span class="session-label mono"><i class="status-dot"></i>LOCAL / 2 OPERATORS</span><button class="icon-button" id="menuButton"><span data-icon="arrow-left"></span>MAIN MENU</button><button class="icon-button" id="guideButton"><span data-icon="book"></span>FIELD GUIDE</button></div></header>
     <main class="workspace">
       <section id="setupView" aria-labelledby="setupHeading" class="view-enter">
         <header class="page-heading"><div><div class="eyebrow">01 / PREPARATION PHASE</div><h2 id="setupHeading">BUILD YOUR LOADOUT.</h2><p>Pilih kemampuanmu. Ubah jalannya pertempuran.</p></div><div class="setup-steps" aria-label="Tahapan pemilihan"><div class="step active" id="step1"><span class="step-number">01</span>PLAYER ONE</div><span class="step-link"></span><div class="step" id="step2"><span class="step-number">02</span>PLAYER TWO</div></div></header>
@@ -1036,8 +1094,8 @@
       $("budgetTrack").setAttribute("aria-label",`${spent} dari 10 poin`);
       $("selectedLoadout").innerHTML = chosen.length ? chosen.map(id => `<div class="selected-item">${icon(id)}<span>${CARD_BY_ID[id].name}</span><button data-remove="${id}" aria-label="Hapus ${CARD_BY_ID[id].name} dari loadout">${icon("close")}</button></div>`).join("")+`<p class="selection-count">${pad(chosen.length)} CARDS SELECTED / NO DUPLICATES</p>` : '<p class="selected-empty">Belum ada kartu dipilih.</p>';
       $("setupNext").disabled = !chosen.length;
-      $("setupNext").innerHTML = `<span>${ui.player === 1 ? "CONFIRM LOADOUT" : "START OPERATION"}</span>${icon("arrow-right")}`;
-      $("confirmNote").textContent = ui.player === 1 ? "Player 02 memilih setelah konfirmasi." : "Kedua loadout siap. Player 01 bergerak dulu.";
+      $("setupNext").innerHTML = `<span>${ui.net || ui.player === 1 ? "CONFIRM LOADOUT" : "START OPERATION"}</span>${icon("arrow-right")}`;
+      $("confirmNote").textContent = ui.net ? "Loadout-mu dirahasiakan dari lawan." : ui.player === 1 ? "Player 02 memilih setelah konfirmasi." : "Kedua loadout siap. Player 01 bergerak dulu.";
       renderCatalog(enter);
       if (ui.inspected) renderIntel(CARD_BY_ID[ui.inspected]);
       if (focusedCard && !enter) $("catalog").querySelector(`[data-card="${focusedCard}"]`)?.focus({preventScroll:true});
@@ -1105,14 +1163,14 @@
     }
     function cellEnabled(r,c) {
       const g = ui.game, p = g.s.pending, coin = g.s.board[r][c];
-      if (g.s.ended || g.s.offer) return false;
+      if (!mine() || g.s.ended || g.s.offer) return false;
       if (p?.candidates) return !!coin && p.candidates.includes(coin.id);
       if (p?.values) return p.values.includes(g.laneForCell(r,c));
       return g.canAct("drop") && g.canDrop(g.sideways ? r : c);
     }
     function laneEnabled(lane,physicalColumn = false) {
       const g = ui.game, p = g.s.pending;
-      if (ui.busy || g.s.ended || g.s.offer || p?.candidates || p?.type === "options") return false;
+      if (ui.busy || !mine() || g.s.ended || g.s.offer || p?.candidates || p?.type === "options") return false;
       if (physicalColumn && p?.type === "column") return p.values.includes(lane);
       if (p?.type === "column") return false;
       if (p?.values) return p.values.includes(lane);
@@ -1124,8 +1182,8 @@
       const s = g.s, beforeFocus = document.activeElement?.closest("#board .cell");
       if (beforeFocus) ui.focusCell = {r:Number(beforeFocus.dataset.r),c:Number(beforeFocus.dataset.c)};
       ui.focusCell.r = Math.min(ui.focusCell.r,g.height-1); ui.focusCell.c = Math.min(ui.focusCell.c,g.width-1);
-      $("turnName").textContent = s.ended ? (s.winner ? `PLAYER ${pad(s.winner)} WINS` : "OPERATION DRAW") : `PLAYER ${pad(s.turn)}`;
-      $("turnPrompt").textContent = s.ended ? "OPERATION COMPLETE" : s.pending ? "SELECT A TARGET" : s.enforce ? `FORCED / ${s.enforce.toUpperCase()}` : s.phase ? `EXTRA ACTION / ${s.phase.toUpperCase()}` : s.overloadActive ? "OVERLOAD / TWO ACTIONS" : "AWAITING COMMAND";
+      $("turnName").textContent = s.ended ? (s.winner ? `${pname(s.winner)} WINS` : "OPERATION DRAW") : pname(s.turn);
+      $("turnPrompt").textContent = s.ended ? "OPERATION COMPLETE" : (ui.net && !mine()) ? "WAITING FOR OPPONENT" : s.pending ? "SELECT A TARGET" : s.enforce ? `FORCED / ${s.enforce.toUpperCase()}` : s.phase ? `EXTRA ACTION / ${s.phase.toUpperCase()}` : s.overloadActive ? "OVERLOAD / TWO ACTIONS" : "AWAITING COMMAND";
       $("turnEmblem").textContent = pad(s.ended && s.winner ? s.winner : s.turn);
       $("turnEmblem").style.color = s.turn === 1 ? "var(--cyan)" : "var(--orange)";
       $("turnEmblem").style.borderColor = s.turn === 1 ? "var(--cyan)" : "var(--orange)";
@@ -1147,10 +1205,10 @@
         return `<button class="cell ${cellEnabled(r,c) ? "clickable" : ""} ${target ? "selected" : ""} ${first ? "first-choice" : ""} ${locked ? "locked" : ""} ${winner ? "win" : ""}" data-r="${r}" data-c="${c}" type="button" aria-label="${safe(label)}" tabindex="${r === ui.focusCell.r && c === ui.focusCell.c ? "0" : "-1"}">${coin ? coinMarkup(coin) : ""}${locked ? icon("lock","cell-lock") : ""}</button>`;
       }).join("")).join("");
       renderCoordinates();
-      const removed = s.removed[s.turn];
-      $("hand").innerHTML = s.loadouts[s.turn].map(id => tileMarkup(CARD_BY_ID[id],{removed:removed.includes(id)})).join("") || '<p class="no-effects">LOADOUT EMPTY</p>';
+      const hp = ui.net ? ui.net.me : s.turn, removed = s.removed[hp];
+      $("hand").innerHTML = s.loadouts[hp].map(id => tileMarkup(CARD_BY_ID[id],{removed:removed.includes(id)})).join("") || '<p class="no-effects">LOADOUT EMPTY</p>';
       bindCardInspect($("hand"),"hand");
-      $("handBudget").textContent = `${g.available().reduce((sum,id) => sum+CARD_BY_ID[id].weight,0)} / 10 PT`;
+      $("handBudget").textContent = `${g.available(hp).reduce((sum,id) => sum+CARD_BY_ID[id].weight,0)} / 10 PT`;
       const protocols = g.protocols();
       $("effectCount").textContent = pad(protocols.length);
       $("effectList").innerHTML = protocols.map(p => `<div class="effect-row">${icon(p.id)}<div><span class="effect-name">${p.name}</span><span class="effect-track"><i style="--progress:${Math.max(0,p.remaining/p.max*100)}%"></i></span></div><span class="effect-time">${p.label || `${p.remaining}T`}</span></div>`).join("") || '<p class="no-effects">NO ACTIVE PROTOCOLS</p>';
@@ -1173,15 +1231,15 @@
       const g = ui.game;
       if (!g) return;
       const s = g.s;
-      $("dropAction").disabled = ui.busy || !g.canAct("drop") || !g.hasDrop();
-      $("cardAction").disabled = ui.busy || !g.canAct("card") || !g.available().some(id => g.usable(id));
-      $("passAction").hidden = s.ended || !!s.pending || !!s.offer || g.hasLegalAction();
+      $("dropAction").disabled = ui.busy || !mine() || !g.canAct("drop") || !g.hasDrop();
+      $("cardAction").disabled = ui.busy || !mine() || !g.canAct("card") || !g.available().some(id => g.usable(id));
+      $("passAction").hidden = !mine() || s.ended || !!s.pending || !!s.offer || g.hasLegalAction();
       $("passAction").disabled = ui.busy;
       $("newMatch").disabled = ui.busy;
       $("board").setAttribute("aria-busy",ui.busy ? "true" : "false");
       $("board").querySelectorAll(".cell").forEach(el => el.setAttribute("aria-disabled",ui.busy || !cellEnabled(Number(el.dataset.r),Number(el.dataset.c)) ? "true" : "false"));
       document.querySelectorAll("[data-lane]").forEach(button => { button.disabled = !laneEnabled(Number(button.dataset.lane),button.dataset.axis === "col"); });
-      const message = s.ended ? (s.winner ? `Player ${pad(s.winner)} berhasil Connect ${s.target}.` : s.drawReason) : s.pending?.title || (s.recyclePending ? "Recycle: deploy satu koin pengganti." : s.enforce ? `Forced Action: kamu wajib ${s.enforce === "drop" ? "deploy koin" : "menggunakan kartu"}.` : s.phase ? `Overload: selesaikan aksi ${s.phase === "drop" ? "deploy" : "kartu"} tambahan.` : g.sideways ? "Gravitasi menyamping. Klik baris; panah menunjukkan sisi masuk." : "Klik kolom untuk deploy, atau gunakan satu kartu taktis.");
+      const message = !s.ended && !mine() ? "Menunggu giliran lawan..." : s.ended ? (s.winner ? `Player ${pad(s.winner)} berhasil Connect ${s.target}.` : s.drawReason) : s.pending?.title || (s.recyclePending ? "Recycle: deploy satu koin pengganti." : s.enforce ? `Forced Action: kamu wajib ${s.enforce === "drop" ? "deploy koin" : "menggunakan kartu"}.` : s.phase ? `Overload: selesaikan aksi ${s.phase === "drop" ? "deploy" : "kartu"} tambahan.` : g.sideways ? "Gravitasi menyamping. Klik baris; panah menunjukkan sisi masuk." : "Klik kolom untuk deploy, atau gunakan satu kartu taktis.");
       $("gameNotice").innerHTML = `${icon(s.ended ? "check" : "info")}<span>${safe(message)}</span>`;
     }
     function clearHover() {
@@ -1191,7 +1249,7 @@
     function hoverLane(r,c) {
       clearHover();
       const g = ui.game;
-      if (!g || ui.busy || g.s.ended || g.s.offer || g.s.pending?.candidates || g.s.pending?.type === "options") return;
+      if (!g || ui.busy || !mine() || g.s.ended || g.s.offer || g.s.pending?.candidates || g.s.pending?.type === "options") return;
       const lane = g.laneForCell(r,c), p = g.s.pending;
       if (p?.values ? !p.values.includes(lane) : !g.canAct("drop") || !g.canDrop(lane)) return;
       $("board").querySelectorAll(".cell").forEach(el => { if (g.laneForCell(Number(el.dataset.r),Number(el.dataset.c)) === lane) el.classList.add("lane-hover"); });
@@ -1284,6 +1342,7 @@
     }
     function requestNewOperation() {
       if (ui.busy || ui.modal) return;
+      if (ui.net) { $("menuButton").click(); return; }
       if (!ui.game || ui.game.s.ended) { beginSetup(); return; }
       showDialog(`<button class="dialog-close" data-close aria-label="Batal">${icon("close")}</button><div class="eyebrow">OPERATION CONTROL</div><h2 id="modalTitle">LEAVE THE FIELD?</h2><p class="dialog-intro">Match saat ini dan kedua loadout akan direset. Tidak ada perubahan jika kamu memilih lanjutkan.</p><div class="option-grid"><button class="option-button" data-close>${icon("arrow-left")}<span><strong>CONTINUE</strong><small>Kembali ke operasi</small></span></button><button class="option-button" id="confirmReset">${icon("grid")}<span><strong>NEW LOADOUT</strong><small>Mulai persiapan baru</small></span></button></div>`,"confirm",true);
       $("confirmReset").onclick = beginSetup;
@@ -1292,23 +1351,28 @@
       if (!ui.game?.s.ended || ui.resultShown || ui.modal) return;
       ui.resultShown = true;
       const s = ui.game.s;
-      showDialog(`<div class="winner-icon">${icon(s.winner ? "trophy" : "ouroboros")}</div><div class="eyebrow">OPERATION COMPLETE</div><h2 id="modalTitle">${s.winner ? `PLAYER ${pad(s.winner)} WINS.` : "TACTICAL DRAW."}</h2><p class="dialog-intro">${s.winner ? `Connect ${s.target}. Medan berhasil dikuasai.` : s.drawReason}</p><button class="primary-button" id="rematch"><span>REMATCH / SAME LOADOUTS</span>${icon("arrow-right")}</button><button class="subtle-button" id="editLoadouts">NEW MATCH / EDIT LOADOUTS</button><button class="icon-button" style="margin:20px auto 0" data-close>VIEW BATTLEFIELD</button>`,"winner",true);
-      $("rematch").onclick = startOperation;
+      showDialog(`<div class="winner-icon">${icon(s.winner ? "trophy" : "ouroboros")}</div><div class="eyebrow">OPERATION COMPLETE</div><h2 id="modalTitle">${s.winner ? `${pname(s.winner)} WINS.` : "TACTICAL DRAW."}</h2><p class="dialog-intro">${s.winner ? `Connect ${s.target}. Medan berhasil dikuasai.` : s.drawReason}</p><button class="primary-button" id="rematch"><span>REMATCH / SAME LOADOUTS</span>${icon("arrow-right")}</button><button class="subtle-button" id="editLoadouts">NEW MATCH / EDIT LOADOUTS</button><button class="icon-button" style="margin:20px auto 0" data-close>VIEW BATTLEFIELD</button>`,"winner",true);
+      $("rematch").onclick = ui.net ? showMenu : startOperation;
       $("editLoadouts").onclick = beginSetup;
+      if (ui.net) { $("rematch").querySelector("span").textContent = "BACK TO MAIN MENU"; $("editLoadouts").hidden = true; }
     }
     function takeAction(action) {
       if (!ui.game || ui.busy) return;
+      if (ui.net && !ui.net.remote && ui.game.s.turn !== ui.net.me) return;
       hideTooltip();
       clearHover();
       const before = captureTokens(), previousTurn = ui.game.s.turn;
       ui.game.error = "";
       if (!action()) {
         if (ui.game.error) toast(ui.game.error);
-        if (!ui.modal && ui.game.s.offer) showOffer();
-        else if (!ui.modal && ui.game.s.pending?.type === "options") showOptions();
+        if (!ui.modal && !ui.game.sent && mine() && ui.game.s.offer) showOffer();
+        else if (!ui.modal && !ui.game.sent && mine() && ui.game.s.pending?.type === "options") showOptions();
         return;
       }
-      const events = ui.game.drainEvents();
+      presentResult(before,previousTurn,ui.game.drainEvents());
+    }
+    function presentResult(before,previousTurn,events) {
+      if (ui.net?.host) netPush(events);
       ui.busy = true;
       renderBattle();
       const duration = animateTransition(before,events);
@@ -1316,8 +1380,8 @@
       const complete = () => {
         ui.busy = false;
         syncControls();
-        if (ui.game.s.offer) showOffer();
-        else if (ui.game.s.pending?.type === "options") showOptions();
+        if (ui.game.s.offer) { if (mine()) showOffer(); }
+        else if (ui.game.s.pending?.type === "options") { if (mine()) showOptions(); }
         else if (ui.game.s.ended) later(showWinner,350);
         else if (previousTurn !== ui.game.s.turn && motionAllowed()) $("turnEmblem").animate([{opacity:.3,transform:"translateY(4px)"},{opacity:1,transform:"none"}],{duration:320});
         announce(events.filter(e => e.type === "expiry").map(e => e.context.message).join(" ") || (ui.game.s.pending?.title || `Giliran Player ${ui.game.s.turn}. ${ui.game.s.phase ? "Selesaikan aksi tambahan." : "Pilih deploy atau kartu."}`));
@@ -1827,6 +1891,7 @@
     $("cardSearch").addEventListener("input",event => { ui.query = event.target.value; renderCatalog(); });
     $("setupNext").onclick = () => {
       if (!ui.loadouts[ui.player].length) return;
+      if (ui.net) { netConfirm(); return; }
       if (ui.player === 1) {
         ui.player = 2; ui.filter = "all"; ui.query = "";
         $("cardSearch").value = ""; updateFilters(); resetIntel(); renderSetup(true);
@@ -1888,7 +1953,7 @@
       if (event.key === "Escape") {
         hideTooltip();
         if (ui.modal && ui.closeable) { closeDialog(); if (ui.game?.s.ended && !ui.resultShown) later(showWinner,50); }
-        else if (ui.modal) toast("Aksi kartu sudah dimulai. Selesaikan pilihan untuk melanjutkan.");
+        else if (ui.modal) toast("Selesaikan pilihan ini untuk melanjutkan.");
       }
       if (event.key !== "Tab" || !ui.modal) return;
       const dialog = $("modalRoot").querySelector(".dialog"), controls = [...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),[tabindex="0"]')].filter(el => !el.hidden);
@@ -1900,6 +1965,169 @@
     document.addEventListener("pointerdown",event => { if (!event.target.closest("[data-card]")) hideTooltip(); });
     window.addEventListener("scroll",hideTooltip,{passive:true,capture:true});
     window.addEventListener("resize",hideTooltip,{passive:true});
+    /* ---------- MAIN MENU ---------- */
+    const menu = $("menuView"), shell = $("appShell");
+    function showMenu() {
+      netClose();
+      document.querySelector(".session-label").lastChild.textContent = "LOCAL / 2 OPERATORS";
+      closeDialog(false);
+      menu.hidden = false; shell.hidden = true;
+      document.body.style.overflow = "hidden";
+      menu.querySelector("[data-mode]").focus({preventScroll:true});
+    }
+    function enterLocal() {
+      menu.hidden = true; shell.hidden = false;
+      document.body.style.overflow = "";
+      beginSetup();
+    }
+    /* ---------- ONLINE (WebRTC via PeerJS, tanpa database) ---------- */
+    const PEER_PREFIX = "fourfold-", PEER_OPTS = {}; // TODO: isi { config:{ iceServers:[...] } } (TURN) bila ada pemain yang gagal terhubung
+    const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const NET_METHODS = ["drawOffer","chooseCard","chooseOption","chooseTarget","chooseLane","actOnCell","drop","pass"];
+    const cleanName = v => String(v || "").replace(/[^\p{L}\p{N} _.-]/gu,"").trim().slice(0,14);
+    function pname(n) { return ui.net ? (n === ui.net.me ? ui.net.name : ui.net.opp).toUpperCase() : `PLAYER ${pad(n)}`; }
+    function mine() { return !ui.net || ui.game?.s.turn === ui.net.me; }
+    function validLoadout(l) { return Array.isArray(l) && l.length > 0 && new Set(l).size === l.length && l.every(id => CARD_BY_ID[id]) && l.reduce((s,id) => s+CARD_BY_ID[id].weight,0) <= 10; }
+    function netSend(m) { try { if (ui.net?.conn?.open) ui.net.conn.send(m); } catch (_) {} }
+    function netClose() {
+      const n = ui.net; if (!n) return;
+      n.closing = true; ui.net = null;
+      try { n.conn?.send({t:"bye"}); } catch (_) {}
+      try { n.conn?.close(); } catch (_) {}
+      try { n.peer?.destroy(); } catch (_) {}
+    }
+    function showWait(title,body) {
+      showDialog(`<div class="eyebrow">ONLINE / STATUS</div><h2 id="modalTitle">${title}</h2><div class="dialog-intro">${body}</div><button class="subtle-button" id="waitLeave">CANCEL</button>`,"wait",false);
+      $("waitLeave").onclick = showMenu;
+    }
+    function netFail(text) { netClose(); closeDialog(false); toast(text); }
+    function netHost(name,tries = 0) {
+      if (typeof Peer === "undefined") { toast("Library online gagal dimuat. Periksa koneksi internet."); return; }
+      if (!tries) showWait("CREATING ROOM.","Menyiapkan room...");
+      const code = Array.from({length:5},() => CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join("");
+      const n = ui.net = {host:true,me:1,name,opp:"",ready:{},peer:new Peer(PEER_PREFIX+code,PEER_OPTS)};
+      n.peer.on("open",() => { showWait("WAITING FOR OPPONENT.",`<div class="room-code">${code}</div>Bagikan kode ini ke lawanmu. Loadout-mu tetap rahasia.`); });
+      n.peer.on("connection",conn => { if (n.conn) conn.close(); else netBind(n,conn); });
+      n.peer.on("error",e => {
+        if (e.type === "unavailable-id" && tries < 4) { n.closing = true; try { n.peer.destroy(); } catch (_) {} ui.net = null; netHost(name,tries+1); }
+        else netFail("Koneksi gagal: "+e.type);
+      });
+    }
+    function netJoin(name,code) {
+      if (typeof Peer === "undefined") { toast("Library online gagal dimuat. Periksa koneksi internet."); return; }
+      showWait("CONNECTING.",`Menghubungkan ke room ${code}...`);
+      const n = ui.net = {host:false,me:2,name,opp:"",ready:{},peer:new Peer(PEER_OPTS)};
+      n.peer.on("open",() => netBind(n,n.peer.connect(PEER_PREFIX+code,{reliable:true})));
+      n.peer.on("error",e => netFail(e.type === "peer-unavailable" ? "Room tidak ditemukan. Periksa kodenya." : "Koneksi gagal: "+e.type));
+      setTimeout(() => { if (ui.net === n && !n.opp) netFail("Waktu koneksi habis. Coba lagi."); },15000);
+    }
+    function netBind(n,conn) {
+      n.conn = conn;
+      conn.on("open",() => { if (!n.host) netSend({t:"hello",name:n.name}); });
+      conn.on("data",m => netRecv(n,m));
+      conn.on("close",() => netLost(n));
+    }
+    function netRecv(n,m) {
+      if (ui.net !== n || !m || typeof m !== "object") return;
+      switch (m.t) {
+        case "hello": if (n.opp) break; n.opp = cleanName(m.name) || "OPPONENT"; if (n.host) netSend({t:"hello",name:n.name}); goSetup(); break;
+        case "ready": if (n.host && !n.ready[2] && validLoadout(m.loadout)) { n.ready[2] = m.loadout; if (n.ready[1]) hostStart(); } break;
+        case "act": if (n.host) hostAct(m); break;
+        case "state": if (!n.host) applySnap(m); break;
+        case "bye": netLost(n); break;
+      }
+    }
+    function netLost(n) {
+      if (ui.net !== n || n.closing) return;
+      if (ui.game?.s.ended) { toast("Lawan meninggalkan room."); return; }
+      showDialog(`<div class="eyebrow">ONLINE / DISCONNECTED</div><h2 id="modalTitle">OPPONENT LEFT.</h2><p class="dialog-intro">Koneksi dengan lawan terputus.</p><button class="primary-button" id="lostMenu"><span>BACK TO MAIN MENU</span>${icon("arrow-right")}</button>`,"lost",false);
+      $("lostMenu").onclick = showMenu;
+    }
+    function goSetup() {
+      menu.hidden = true; shell.hidden = false; document.body.style.overflow = "";
+      beginSetup(); ui.player = ui.net.me; renderSetup(true);
+      document.querySelector(".session-label").lastChild.textContent = `ONLINE / VS ${ui.net.opp.toUpperCase()}`;
+    }
+    function netConfirm() {
+      const n = ui.net, chosen = ui.loadouts[n.me];
+      if (!chosen.length) return;
+      n.ready[n.me] = [...chosen];
+      if (n.host) { if (n.ready[2]) { hostStart(); return; } }
+      else netSend({t:"ready",loadout:n.ready[2]});
+      showWait("LOADOUT LOCKED.","Menunggu lawan memilih loadout...");
+    }
+    // Host = satu-satunya pemilik engine. Tamu hanya mengirim aksi dan menerima snapshot
+    // yang sudah dibersihkan dari loadout / tawaran kartu milik host.
+    function hostStart() {
+      const n = ui.net;
+      clearVisuals(); closeDialog(false);
+      ui.game = new FourfoldEngine({1:n.ready[1],2:n.ready[2]});
+      ui.resultShown = false; ui.focusCell = {r:0,c:0};
+      setView("battle"); renderBattle(); netPush([]);
+    }
+    function snapFor(me) {
+      const c = JSON.parse(JSON.stringify(ui.game.s)), o = me === 1 ? 2 : 1;
+      c.loadouts[o] = []; c.removed[o] = [];
+      if (c.turn !== me) c.offer = null;
+      return c;
+    }
+    function netPush(events) { if (ui.net?.host && ui.game) netSend({t:"state",s:snapFor(2),events:events || []}); }
+    function hostAct(m) {
+      const n = ui.net, g = ui.game;
+      if (!g || !NET_METHODS.includes(m.m) || !Array.isArray(m.a) || m.a.length > 2 || !m.a.every(x => typeof x === "string" || Number.isInteger(x))) return;
+      if (ui.busy) { later(() => hostAct(m),120); return; }
+      if (g.s.turn !== 2 || g.s.ended) { netPush([]); return; }
+      let ok = false; n.remote = true; g.error = "";
+      takeAction(() => (ok = g[m.m](...m.a)));
+      n.remote = false;
+      if (!ok) netPush([]);
+    }
+    function applySnap(m) {
+      if (!m.s) return;
+      if (ui.busy) { later(() => applySnap(m),120); return; }
+      if (!ui.game) {
+        const g = new FourfoldEngine({1:[],2:[]});
+        NET_METHODS.forEach(name => { g[name] = (...a) => { g.sent = true; netSend({t:"act",m:name,a}); return false; }; });
+        clearVisuals(); closeDialog(false);
+        ui.game = g; g.s = m.s; ui.resultShown = false; ui.focusCell = {r:0,c:0};
+        setView("battle"); renderBattle(); return;
+      }
+      const before = captureTokens(), previousTurn = ui.game.s.turn;
+      ui.game.s = m.s; ui.game.sent = false;
+      presentResult(before,previousTurn,Array.isArray(m.events) ? m.events : []);
+    }
+    function showOnline() {
+      if (ui.modal) return;
+      let saved = ""; try { saved = cleanName(localStorage.getItem("fourfold.name")); } catch (_) {}
+      showDialog(`<button class="dialog-close" data-close aria-label="Tutup">${icon("close")}</button><div class="eyebrow">ONLINE / LOBBY</div><h2 id="modalTitle">FIND AN OPPONENT.</h2><p class="dialog-intro">Masukkan nama, lalu buat room atau gabung dengan kode. Lawan tidak bisa melihat loadout-mu.</p><label class="eyebrow" for="playerName">CALLSIGN</label><input class="dialog-field" id="playerName" maxlength="14" placeholder="Nama kamu" autocomplete="off" spellcheck="false" value="${saved}"><div class="option-grid stack"><button class="option-button" id="onlineCreate">${icon("signal")}<span><strong>CREATE ROOM</strong><small>Jadi host, kirim kode ke lawan</small></span></button><div class="option-button join-box">${icon("search")}<span><strong>JOIN ROOM</strong><input id="roomCode" maxlength="5" placeholder="KODE" autocomplete="off" spellcheck="false" aria-label="Kode room"><button class="subtle-button" id="onlineJoin">JOIN</button></span></div></div><p class="dialog-status" style="--d:var(--lime)"><i style="background:var(--lime)"></i>PEER-TO-PEER / TANPA SERVER</p>`,"online",true);
+      const getName = () => {
+        const v = cleanName($("playerName").value);
+        if (!v) { toast("Masukkan nama dulu."); $("playerName").focus(); return null; }
+        try { localStorage.setItem("fourfold.name",v); } catch (_) {}
+        return v;
+      };
+      $("onlineCreate").onclick = () => { const v = getName(); if (v) netHost(v); };
+      $("onlineJoin").onclick = () => {
+        const v = getName(); if (!v) return;
+        const code = $("roomCode").value.trim().toUpperCase();
+        if (!/^[A-Z0-9]{5}$/.test(code)) { toast("Masukkan 5 karakter kode room."); $("roomCode").focus(); return; }
+        netJoin(v,code);
+      };
+    }
+    menu.querySelectorAll("[data-mode]").forEach(button => { button.onclick = () => button.dataset.mode === "local" ? enterLocal() : showOnline(); });
+    document.addEventListener("keydown",event => {
+      if (menu.hidden || ui.modal || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "1") enterLocal(); else if (event.key === "2") showOnline();
+    });
+    $("menuButton").onclick = () => {
+      if (ui.busy || ui.modal) return;
+      if (!ui.game || ui.game.s.ended) { showMenu(); return; }
+      showDialog(`<button class="dialog-close" data-close aria-label="Batal">${icon("close")}</button><div class="eyebrow">OPERATION CONTROL</div><h2 id="modalTitle">BACK TO MAIN MENU?</h2><p class="dialog-intro">Match yang sedang berjalan akan hilang.</p><div class="option-grid"><button class="option-button" data-close>${icon("arrow-left")}<span><strong>CONTINUE</strong><small>Kembali ke operasi</small></span></button><button class="option-button" id="confirmMenu">${icon("grid")}<span><strong>MAIN MENU</strong><small>Keluar dari match</small></span></button></div>`,"confirm",true);
+      $("confirmMenu").onclick = showMenu;
+    };
+    hydrateIcons(menu);
+    menu.querySelector("[data-mode]").focus({preventScroll:true});
+
   </script>
 </body>
 </html>
