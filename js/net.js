@@ -13,14 +13,17 @@ const PEER_OPTS = {config:{iceServers:[
   {urls:"turns:openrelay.metered.ca:443?transport=tcp",username:TURN_USER,credential:TURN_PASS}
 ]}};
 // Opsional: tempel URL kredensial dari dashboard metered.ca (…metered.live/api/v1/turn/credentials?apiKey=…) untuk memakai TURN pribadi.
-const METERED_URL = "";
+const METERED_URL = "/api/turn";
 async function peerOpts() {
   let servers = PEER_OPTS.config.iceServers;
   if (METERED_URL) {
-    try { servers = [{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun.cloudflare.com:3478"},...await (await fetch(METERED_URL)).json()]; } catch (_) {}
+    try {
+      const turn = await (await fetch(METERED_URL)).json();
+      if (Array.isArray(turn) && turn.length)
+        servers = [{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun.cloudflare.com:3478"},...turn];
+    } catch (_) {}
   }
   const config = {iceServers:servers};
-  // Tes: buka game dengan ?relay=1 di KEDUA pemain untuk memaksa lewat TURN.
   if (new URLSearchParams(location.search).has("relay")) config.iceTransportPolicy = "relay";
   return {config};
 }
@@ -73,6 +76,7 @@ function netBind(n,conn) {
   if (pc) {
     n.cands = {};
     pc.addEventListener("icecandidate",e => { const t = e.candidate?.type; if (t) n.cands[t] = (n.cands[t] || 0)+1; });
+    pc.addEventListener("icecandidateerror",e => console.warn("[net] icecandidateerror",e.url,e.errorCode,e.errorText));
     pc.addEventListener("iceconnectionstatechange",() => { n.ice = pc.iceConnectionState; console.log("[net] ICE",n.ice,n.cands); });
   }
   conn.on("open",() => {
