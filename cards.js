@@ -3,7 +3,7 @@ const CARDS = [
     id: "purge",
     name: "Purge",
     weight: 1,
-    desc: "Remove one coin anywhere on the board, including your own or your opponent’s.",
+    desc: "Remove one coin anywhere on the board, including your own or your opponent's.",
   },
   {
     id: "magnetic",
@@ -99,7 +99,7 @@ const CARDS = [
     id: "demotion",
     name: "Demotion",
     weight: 5,
-    desc: "Randomly remove one card from your opponent’s loadout for the rest of the match.",
+    desc: "Randomly remove one card from your opponent's loadout for the rest of the match.",
   },
   {
     id: "mimic",

@@ -365,8 +365,7 @@ function tickEffects(player) {
       state[k]--;
       if (state[k] === 0) {
         if (k === "targetTurns") state.target = 4;
-        if (k === "neutralTurns") {
-        }
+        if (k === "neutralTurns") { }
         if (k === "gravityTurns") state.gravity = "down";
         if (k === "ouroTurns" && state.ouroActive) {
           // Restore exactly the two columns that were swapped (the recorded
@@ -401,11 +400,11 @@ function checkWin() {
   const winners = new Set();
   const winCells = new Map(); // "r,c" -> {r,c}, for highlighting the line
   let dirs = [
-      [0, 1],
-      [1, 0],
-      [1, 1],
-      [1, -1],
-    ],
+    [0, 1],
+    [1, 0],
+    [1, 1],
+    [1, -1],
+  ],
     need = state.target;
   for (let r = 0; r < state.board.length; r++)
     for (let c = 0; c < state.board[r].length; c++) {
@@ -496,12 +495,12 @@ function render() {
   document.getElementById("turnPrompt").textContent =
     state.selection?.title ||
     (state.enforce
-      ? `Forced to ${state.enforce}`
-      : state.extraPhase
-      ? `Overload: ${state.extraPhase} action`
-      : state.overloadFor === state.turn
-      ? "Overload ready — choose drop or card"
-      : "Choose your move");
+    ? `Forced to ${state.enforce}`
+    : state.extraPhase
+    ? `Overload: ${state.extraPhase} action`
+    : state.overloadFor === state.turn
+    ? "Overload ready — choose drop or card"
+    : "Choose your move");
   document.getElementById("count1").textContent = allCoins().filter(
     (x) => x.coin.owner === 1
   ).length;
@@ -594,26 +593,26 @@ function render() {
             : "✕";
           const label = `Row ${r + 1}, column ${c + 1}${
             coin
-              ? state.neutralTurns > 0
-                ? ", coin, color hidden"
-                : coin.owner > 0
-                ? `, player ${coin.owner} coin`
-                : ", neutral decoy coin"
-              : ", empty"
+            ? state.neutralTurns > 0
+              ? ", coin, color hidden"
+              : coin.owner > 0
+              ? `, player ${coin.owner} coin`
+              : ", neutral decoy coin"
+            : ", empty"
           }`;
           return `<div class="cell ${isCandidate ? "selected" : ""} ${isWin ? "win" : ""} ${
             locked ? "locked" : ""
           } ${clickable ? "clickable" : ""}" data-r="${r}" data-c="${c}" tabindex="0" role="button" aria-label="${label}">${
             coin
               ? `<div class="coin ${
-                  state.neutralTurns > 0 ? "neutral" : coin.owner === 1
-                    ? "p1"
-                    : coin.owner === 2
-                    ? "p2"
-                    : "neutral"
-                } ${coin.shield ? "shielded" : ""} ${
-                  coin.kind === "bomb" || coin.kind === "superbomb" ? "bomb" : ""
-                } ${coin.id === animateCoinId ? "just-dropped" : ""}">${glyph}</div>`
+                state.neutralTurns > 0 ? "neutral" : coin.owner === 1
+                ? "p1"
+                : coin.owner === 2
+                ? "p2"
+                : "neutral"
+              } ${coin.shield ? "shielded" : ""} ${
+                coin.kind === "bomb" || coin.kind === "superbomb" ? "bomb" : ""
+              } ${coin.id === animateCoinId ? "just-dropped" : ""}">${glyph}</div>`
               : ""
           }</div>`;
         })
@@ -691,8 +690,8 @@ function render() {
     }
     document.getElementById("gameNotice").textContent =
       state.gravity === "left" || state.gravity === "right"
-        ? "Click a row on the board to drop your coin into it."
-        : "Click a column on the board to drop your coin into it.";
+      ? "Click a row on the board to drop your coin into it."
+      : "Click a column on the board to drop your coin into it.";
   };
   document.getElementById("cardAction").onclick = showOffer;
   const pass = document.getElementById("passAction");
