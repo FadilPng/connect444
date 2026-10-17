@@ -51,7 +51,7 @@ function renderBattle() {
   const hp = ui.net ? ui.net.me : s.turn, removed = s.removed[hp];
   $("hand").innerHTML = s.loadouts[hp].map(id => tileMarkup(CARD_BY_ID[id],{removed:removed.includes(id)})).join("") || '<p class="no-effects">LOADOUT EMPTY</p>';
   bindCardInspect($("hand"),"hand");
-  $("handBudget").textContent = `${g.available(hp).reduce((sum,id) => sum+CARD_BY_ID[id].weight,0)} / 10 PT`;
+  $("handBudget").textContent = `${g.available(hp).reduce((sum,id) => sum+CARD_BY_ID[id].weight,0)} / 15 PT`;
   const protocols = g.protocols();
   $("effectCount").textContent = pad(protocols.length);
   $("effectList").innerHTML = protocols.map(p => `<div class="effect-row">${icon(p.id)}<div><span class="effect-name">${p.name}</span><span class="effect-track"><i style="--progress:${Math.max(0,p.remaining/p.max*100)}%"></i></span></div><span class="effect-time">${p.label || `${p.remaining}T`}</span></div>`).join("") || '<p class="no-effects">NO ACTIVE PROTOCOLS</p>';

@@ -92,7 +92,7 @@ h1,h2,h3,p { margin:0; }
 .budget-heading { display:flex; align-items:center; justify-content:space-between; }
 .budget-value { font-family:var(--display); font-size:30px; line-height:1; color:var(--lime); }
 .budget-value small { font-size:16px; color:#737f84; margin-left:4px; }
-.budget-track { display:grid; grid-template-columns:repeat(10,1fr); gap:4px; margin:13px 0 5px; }
+.budget-track { display:grid; grid-template-columns:repeat(15,1fr); gap:4px; margin:13px 0 5px; }
 .budget-tick { height:4px; background:#343e42; transition:background .2s; }
 .budget-tick.filled { background:var(--lime); }
 .selected-loadout { min-height:68px; padding:7px 21px 12px; }

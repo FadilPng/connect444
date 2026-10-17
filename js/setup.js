@@ -64,7 +64,7 @@ function resetIntel() {
 function renderCatalog(enter = false) {
   const chosen = ui.loadouts[ui.player], spent = chosen.reduce((sum,id) => sum+CARD_BY_ID[id].weight,0);
   const cards = CARDS.filter(card => (ui.filter === "all" || card.category === ui.filter) && `${card.name} ${card.category} ${card.desc}`.toLowerCase().includes(ui.query.toLowerCase().trim()));
-  $("catalog").innerHTML = cards.map((card,index) => tileMarkup(card,{selected:chosen.includes(card.id),unavailable:!chosen.includes(card.id) && spent+card.weight > 10,enter,index})).join("") || '<p class="empty-search">Tidak ada kartu yang cocok. Coba kata kunci atau kategori lain.</p>';
+  $("catalog").innerHTML = cards.map((card,index) => tileMarkup(card,{selected:chosen.includes(card.id),unavailable:!chosen.includes(card.id) && spent+card.weight > 15,enter,index})).join("") || '<p class="empty-search">Tidak ada kartu yang cocok. Coba kata kunci atau kategori lain.</p>';
   bindCardInspect($("catalog"),"setup");
 }
 function renderSetup(enter = false) {
@@ -76,8 +76,8 @@ function renderSetup(enter = false) {
   $("step1").className = `step ${ui.player === 1 ? "active" : "done"}`;
   $("step2").className = `step ${ui.player === 2 ? "active" : ""}`;
   $("budgetSpent").textContent = spent;
-  $("budgetTrack").innerHTML = Array.from({length:10},(_,i) => `<i class="budget-tick ${i < spent ? "filled" : ""}"></i>`).join("");
-  $("budgetTrack").setAttribute("aria-label",`${spent} dari 10 poin`);
+  $("budgetTrack").innerHTML = Array.from({length:15},(_,i) => `<i class="budget-tick ${i < spent ? "filled" : ""}"></i>`).join("");
+  $("budgetTrack").setAttribute("aria-label",`${spent} dari 15 poin`);
   $("selectedLoadout").innerHTML = chosen.length ? chosen.map(id => `<div class="selected-item">${icon(id)}<span>${CARD_BY_ID[id].name}</span><button data-remove="${id}" aria-label="Hapus ${CARD_BY_ID[id].name} dari loadout">${icon("close")}</button></div>`).join("")+`<p class="selection-count">${pad(chosen.length)} CARDS SELECTED / NO DUPLICATES</p>` : '<p class="selected-empty">Belum ada kartu dipilih.</p>';
   $("setupNext").disabled = !chosen.length;
   $("setupNext").innerHTML = `<span>${ui.net || ui.player === 1 ? "CONFIRM LOADOUT" : "START OPERATION"}</span>${icon("arrow-right")}`;
@@ -91,7 +91,7 @@ function toggleCard(id) {
   if (index >= 0) chosen.splice(index,1);
   else {
     const sum = chosen.reduce((total,x) => total+CARD_BY_ID[x].weight,0);
-    if (sum+card.weight > 10) { renderIntel(card); toast(`Poin tidak cukup. Tersisa ${10-sum} PT, ${card.name} memerlukan ${card.weight} PT.`); return; }
+    if (sum+card.weight > 15) { renderIntel(card); toast(`Poin tidak cukup. Tersisa ${15-sum} PT, ${card.name} memerlukan ${card.weight} PT.`); return; }
     chosen.push(id);
   }
   ui.inspected = id;
