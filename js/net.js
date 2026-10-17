@@ -1,0 +1,165 @@
+"use strict";
+/* ---------- ONLINE (WebRTC via PeerJS, tanpa database) ---------- */
+const PEER_PREFIX = "fourfold-";
+// Tanpa TURN, koneksi P2P sering gagal di jaringan seluler/kantor (NAT ketat) dan muncul "waktu habis".
+// Open Relay di bawah gratis tapi publik. Untuk lebih stabil, buat akun gratis di metered.ca lalu ganti username/credential.
+const TURN_USER = "openrelayproject", TURN_PASS = "openrelayproject";
+const PEER_OPTS = {config:{iceServers:[
+  {urls:"stun:stun.l.google.com:19302"},
+  {urls:"stun:openrelay.metered.ca:80"},
+  {urls:"turn:openrelay.metered.ca:80",username:TURN_USER,credential:TURN_PASS},
+  {urls:"turn:openrelay.metered.ca:443",username:TURN_USER,credential:TURN_PASS},
+  {urls:"turn:openrelay.metered.ca:443?transport=tcp",username:TURN_USER,credential:TURN_PASS},
+  {urls:"turns:openrelay.metered.ca:443?transport=tcp",username:TURN_USER,credential:TURN_PASS}
+]}};
+const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const NET_METHODS = ["drawOffer","chooseCard","chooseOption","chooseTarget","chooseLane","actOnCell","drop","pass"];
+const cleanName = v => String(v || "").replace(/[^\p{L}\p{N} _.-]/gu,"").trim().slice(0,14);
+function pname(n) { return ui.net ? (n === ui.net.me ? ui.net.name : ui.net.opp).toUpperCase() : `PLAYER ${pad(n)}`; }
+function mine() { return !ui.net || ui.game?.s.turn === ui.net.me; }
+function validLoadout(l) { return Array.isArray(l) && l.length > 0 && new Set(l).size === l.length && l.every(id => CARD_BY_ID[id]) && l.reduce((s,id) => s+CARD_BY_ID[id].weight,0) <= 10; }
+function netSend(m) { try { if (ui.net?.conn?.open) ui.net.conn.send(m); } catch (_) {} }
+function netClose() {
+  const n = ui.net; if (!n) return;
+  n.closing = true; ui.net = null; clearInterval(n.hb);
+  try { n.conn?.send({t:"bye"}); } catch (_) {}
+  try { n.conn?.close(); } catch (_) {}
+  try { n.peer?.destroy(); } catch (_) {}
+}
+window.addEventListener("pagehide",() => netSend({t:"bye"}));
+function showWait(title,body) {
+  showDialog(`<div class="eyebrow">ONLINE / STATUS</div><h2 id="modalTitle">${title}</h2><div class="dialog-intro">${body}</div><button class="subtle-button" id="waitLeave">CANCEL</button>`,"wait",false);
+  $("waitLeave").onclick = showMenu;
+}
+function netFail(text) { netClose(); closeDialog(false); toast(text); }
+function netHost(name,tries = 0) {
+  if (typeof Peer === "undefined") { toast("Library online gagal dimuat. Periksa koneksi internet."); return; }
+  if (!tries) showWait("CREATING ROOM.","Menyiapkan room...");
+  const code = Array.from({length:5},() => CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join("");
+  const n = ui.net = {host:true,me:1,name,opp:"",ready:{},peer:new Peer(PEER_PREFIX+code,PEER_OPTS)};
+  n.peer.on("open",() => { showWait("WAITING FOR OPPONENT.",`<div class="room-code">${code}</div>Bagikan kode ini ke lawanmu. Loadout-mu tetap rahasia.`); });
+  n.peer.on("connection",conn => { if (n.conn) conn.close(); else netBind(n,conn); });
+  n.peer.on("error",e => {
+    if (e.type === "unavailable-id" && tries < 4) { n.closing = true; try { n.peer.destroy(); } catch (_) {} ui.net = null; netHost(name,tries+1); }
+    else netFail("Koneksi gagal: "+e.type);
+  });
+}
+function netJoin(name,code) {
+  if (typeof Peer === "undefined") { toast("Library online gagal dimuat. Periksa koneksi internet."); return; }
+  showWait("CONNECTING.",`Menghubungkan ke room ${code}...`);
+  const n = ui.net = {host:false,me:2,name,opp:"",ready:{},peer:new Peer(PEER_OPTS)};
+  n.peer.on("open",() => netBind(n,n.peer.connect(PEER_PREFIX+code,{reliable:true})));
+  n.peer.on("error",e => netFail(e.type === "peer-unavailable" ? "Room tidak ditemukan. Periksa kodenya." : "Koneksi gagal: "+e.type));
+  setTimeout(() => { if (ui.net === n && !n.opp) netFail("Waktu koneksi habis. Coba lagi."); },25000);
+}
+function netBind(n,conn) {
+  n.conn = conn;
+  conn.on("open",() => {
+    n.last = Date.now();
+    n.hb = setInterval(() => {
+      if (ui.net !== n) { clearInterval(n.hb); return; }
+      netSend({t:"ping"});
+      if (Date.now()-n.last > 12000) netLost(n);
+    },2000);
+    if (!n.host) netSend({t:"hello",name:n.name});
+  });
+  conn.on("data",m => netRecv(n,m));
+      conn.on("iceStateChanged",st => {
+        if (st !== "failed" || n.opp) return;
+        if (n.host) toast("Koneksi ke tamu gagal. Minta dia coba lagi.");
+        else netFail("Koneksi langsung ke host gagal (jaringan memblokir P2P). Coba jaringan lain atau pasang TURN sendiri.");
+      });
+  conn.on("close",() => netLost(n));
+}
+function netRecv(n,m) {
+  if (ui.net !== n || !m || typeof m !== "object") return;
+  n.last = Date.now();
+  switch (m.t) {
+    case "hello": if (n.opp) break; n.opp = cleanName(m.name) || "OPPONENT"; if (n.host) netSend({t:"hello",name:n.name}); goSetup(); break;
+    case "ready": if (n.host && !n.ready[2] && validLoadout(m.loadout)) { n.ready[2] = m.loadout; if (n.ready[1]) hostStart(); } break;
+    case "act": if (n.host) hostAct(m); break;
+    case "state": if (!n.host) applySnap(m); break;
+    case "bye": netLost(n); break;
+    case "ping": break;
+  }
+}
+function netLost(n) {
+  if (ui.net !== n || n.closing || n.lost) return;
+  n.lost = true; clearInterval(n.hb);
+  const name = (n.opp || "LAWAN").toUpperCase();
+  if (ui.game?.s.ended) { toast(`${name} meninggalkan room.`); return; }
+  const playing = !!ui.game;
+  showDialog(`<div class="eyebrow">ONLINE / OPPONENT LEFT</div><h2 id="modalTitle">${name} MUNDUR.</h2><p class="dialog-intro">${playing ? "Lawanmu keluar di tengah pertandingan. Kamu menang walkover." : "Lawanmu keluar sebelum pertandingan dimulai."}</p><button class="primary-button" id="lostMenu"><span>BACK TO MAIN MENU</span>${icon("arrow-right")}</button>`,"lost",false);
+  $("lostMenu").onclick = showMenu;
+}
+function goSetup() {
+  menu.hidden = true; shell.hidden = false; document.body.style.overflow = "";
+  beginSetup(); ui.player = ui.net.me; renderSetup(true);
+  document.querySelector(".session-label").lastChild.textContent = `ONLINE / VS ${ui.net.opp.toUpperCase()}`;
+}
+function netConfirm() {
+  const n = ui.net, chosen = ui.loadouts[n.me];
+  if (!chosen.length) return;
+  n.ready[n.me] = [...chosen];
+  if (n.host) { if (n.ready[2]) { hostStart(); return; } }
+  else netSend({t:"ready",loadout:n.ready[2]});
+  showWait("LOADOUT LOCKED.","Menunggu lawan memilih loadout...");
+}
+// Host = satu-satunya pemilik engine. Tamu hanya mengirim aksi dan menerima snapshot
+// yang sudah dibersihkan dari loadout / tawaran kartu milik host.
+function hostStart() {
+  const n = ui.net;
+  clearVisuals(); closeDialog(false);
+  ui.game = new FourfoldEngine({1:n.ready[1],2:n.ready[2]});
+  ui.resultShown = false; ui.focusCell = {r:0,c:0};
+  setView("battle"); renderBattle(); netPush([]);
+}
+function snapFor(me) {
+  const c = JSON.parse(JSON.stringify(ui.game.s)), o = me === 1 ? 2 : 1;
+  c.loadouts[o] = []; c.removed[o] = [];
+  if (c.turn !== me) c.offer = null;
+  return c;
+}
+function netPush(events) { if (ui.net?.host && ui.game) netSend({t:"state",s:snapFor(2),events:events || []}); }
+function hostAct(m) {
+  const n = ui.net, g = ui.game;
+  if (!g || !NET_METHODS.includes(m.m) || !Array.isArray(m.a) || m.a.length > 2 || !m.a.every(x => typeof x === "string" || Number.isInteger(x))) return;
+  if (ui.busy) { later(() => hostAct(m),120); return; }
+  if (g.s.turn !== 2 || g.s.ended) { netPush([]); return; }
+  let ok = false; n.remote = true; g.error = "";
+  takeAction(() => (ok = g[m.m](...m.a)));
+  n.remote = false;
+  if (!ok) netPush([]);
+}
+function applySnap(m) {
+  if (!m.s) return;
+  if (ui.busy) { later(() => applySnap(m),120); return; }
+  if (!ui.game) {
+    const g = new FourfoldEngine({1:[],2:[]});
+    NET_METHODS.forEach(name => { g[name] = (...a) => { g.sent = true; netSend({t:"act",m:name,a}); return false; }; });
+    clearVisuals(); closeDialog(false);
+    ui.game = g; g.s = m.s; ui.resultShown = false; ui.focusCell = {r:0,c:0};
+    setView("battle"); renderBattle(); return;
+  }
+  const before = captureTokens(), previousTurn = ui.game.s.turn;
+  ui.game.s = m.s; ui.game.sent = false;
+  presentResult(before,previousTurn,Array.isArray(m.events) ? m.events : []);
+}
+function showOnline() {
+  if (ui.modal) return;
+  let saved = ""; try { saved = cleanName(localStorage.getItem("fourfold.name")); } catch (_) {}
+  showDialog(`<button class="dialog-close" data-close aria-label="Tutup">${icon("close")}</button><div class="eyebrow">ONLINE / LOBBY</div><h2 id="modalTitle">FIND AN OPPONENT.</h2><p class="dialog-intro">Masukkan nama, lalu buat room atau gabung dengan kode. Lawan tidak bisa melihat loadout-mu.</p><label class="eyebrow" for="playerName">CALLSIGN</label><input class="dialog-field" id="playerName" maxlength="14" placeholder="Nama kamu" autocomplete="off" spellcheck="false" value="${saved}"><div class="option-grid stack"><button class="option-button" id="onlineCreate">${icon("signal")}<span><strong>CREATE ROOM</strong><small>Jadi host, kirim kode ke lawan</small></span></button><div class="option-button join-box">${icon("search")}<span><strong>JOIN ROOM</strong><input id="roomCode" maxlength="5" placeholder="KODE" autocomplete="off" spellcheck="false" aria-label="Kode room"><button class="subtle-button" id="onlineJoin">JOIN</button></span></div></div><p class="dialog-status" style="--d:var(--lime)"><i style="background:var(--lime)"></i>PEER-TO-PEER / TANPA SERVER</p>`,"online",true);
+  const getName = () => {
+    const v = cleanName($("playerName").value);
+    if (!v) { toast("Masukkan nama dulu."); $("playerName").focus(); return null; }
+    try { localStorage.setItem("fourfold.name",v); } catch (_) {}
+    return v;
+  };
+  $("onlineCreate").onclick = () => { const v = getName(); if (v) netHost(v); };
+  $("onlineJoin").onclick = () => {
+    const v = getName(); if (!v) return;
+    const code = $("roomCode").value.trim().toUpperCase();
+    if (!/^[A-Z0-9]{5}$/.test(code)) { toast("Masukkan 5 karakter kode room."); $("roomCode").focus(); return; }
+    netJoin(v,code);
+  };
+}
