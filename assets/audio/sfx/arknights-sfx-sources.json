@@ -1,0 +1,215 @@
+{
+  "repository": "https://github.com/PseudoMon/arknights-audio",
+  "commit": "d6de8b50e23bdfa5cf9d391f4ccb3798d7baf4db",
+  "processing": "Trimmed where specified; LUFS normalization with -2 dBTP ceiling; 25ms end fade; 44.1kHz stereo MP3 128kbps.",
+  "protected_cards": [
+    "purge",
+    "magnetic",
+    "heavy",
+    "bomb",
+    "gravity",
+    "flip",
+    "bottom",
+    "void",
+    "superbomb"
+  ],
+  "bgm_included": false,
+  "files": [
+    {
+      "file": "assets/audio/sfx/ui_click.mp3",
+      "source": "avg/d_avg_button.wav",
+      "max_duration_seconds": 0.25,
+      "target_lufs": -23,
+      "sha256": "072c22892539921e5150eb1c8207527538b47787c868b55914a0b05a6eb6a18b"
+    },
+    {
+      "file": "assets/audio/sfx/ui_select.mp3",
+      "source": "battle/b_ui/b_ui_mark.wav",
+      "max_duration_seconds": 0.4,
+      "target_lufs": -21,
+      "sha256": "740aca7d473975ec75e2c86c079ffa5fb7e827722df521a0698f1f40229ccbf9"
+    },
+    {
+      "file": "assets/audio/sfx/coin_drop.mp3",
+      "source": "battle/b_char/b_char_set.wav",
+      "max_duration_seconds": 0.55,
+      "target_lufs": -19,
+      "sha256": "4d9844f50af8dbd0bed475b9c560a71554b6eda7ec56ab8205a52d4c031ee238"
+    },
+    {
+      "file": "assets/audio/sfx/action_error.mp3",
+      "source": "battle/b_ui/b_ui_dooralarm.wav",
+      "max_duration_seconds": 0.5,
+      "target_lufs": -21,
+      "sha256": "2635f88d0cff7df9f84380c12a6225a558529e2d01ebd74a74cfe314ecd99272"
+    },
+    {
+      "file": "assets/audio/sfx/card_offer.mp3",
+      "source": "battle/b_ui/b_ui_rewardappear.wav",
+      "max_duration_seconds": 0.9,
+      "target_lufs": -19,
+      "sha256": "a0c0cca2e734c6228aa1184fdac794f94189a2eccd49bee55e51a2d6f1c193d2"
+    },
+    {
+      "file": "assets/audio/sfx/operation_start.mp3",
+      "source": "battle/b_ui/b_ui_alarmenter.wav",
+      "max_duration_seconds": 1.4,
+      "target_lufs": -18,
+      "sha256": "108f2f1e6d56b406f21f803e201c92453a70d1fed0877b242ed4f0fcbdc6b354"
+    },
+    {
+      "file": "assets/audio/sfx/victory.mp3",
+      "source": "battle/b_ui/b_ui_win.wav",
+      "max_duration_seconds": null,
+      "target_lufs": -18,
+      "sha256": "22ba32cc309d498298b31aad0242a85deb11dcace6068d9be5d089c5632435cb"
+    },
+    {
+      "file": "assets/audio/sfx/draw.mp3",
+      "source": "battle/b_ui/b_ui_lose.wav",
+      "max_duration_seconds": null,
+      "target_lufs": -18,
+      "sha256": "8d907bb71b52464f7650eb89c57da12c1d08af9dbb0592280bb68c55ec8ab491"
+    },
+    {
+      "file": "assets/audio/sfx/skill_impact.mp3",
+      "source": "avg/d_avg_grenade_explosion.wav",
+      "max_duration_seconds": 1.6,
+      "target_lufs": -18,
+      "sha256": "65f6835e337841e4fc498d3f1816cb82c58a60b5a89c69ba9bcf48d5c9847faf"
+    },
+    {
+      "file": "assets/audio/sfx/skill_shield.mp3",
+      "source": "battle/b_char/b_char_addshield.wav",
+      "max_duration_seconds": 1,
+      "target_lufs": -19,
+      "sha256": "6b69e9bb8ce10e4144715ac27f74c74a7d1bb559e99e1ccd53bcdbbee892924d"
+    },
+    {
+      "file": "assets/audio/sfx/skill_shift.mp3",
+      "source": "battle/b_char/b_char_emp.wav",
+      "max_duration_seconds": 1.1,
+      "target_lufs": -19,
+      "sha256": "b25f96e41de91fee2d9e7e222be9a23b29a1fa0c22aae885342e310273f88914"
+    },
+    {
+      "file": "assets/audio/sfx/skill_cast.mp3",
+      "source": "battle/b_ui/b_ui_getcast.wav",
+      "max_duration_seconds": 0.9,
+      "target_lufs": -19,
+      "sha256": "f9b0f07a05455d8f26b15d5e98e04bf0c8cdf4295696b4ad2289395a9197ae37"
+    },
+    {
+      "file": "assets/audio/sfx/effect_expire.mp3",
+      "source": "battle/b_ui/b_ui_whoosh.wav",
+      "max_duration_seconds": 0.7,
+      "target_lufs": -21,
+      "sha256": "a6beb9c710477130a8ad7649f5b72a469b57370964861f1af0995dd291de4f56"
+    },
+    {
+      "file": "assets/audio/sfx/effect_resist.mp3",
+      "source": "battle/b_char/b_char_defboost.wav",
+      "max_duration_seconds": 0.8,
+      "target_lufs": -19,
+      "sha256": "53c168688a1f43a35dd9dbb093fa2addb161f6b8892035609dd596601b070892"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_ouroboros.mp3",
+      "source": "battle/b_char/b_char_emp_2.wav",
+      "max_duration_seconds": 1.2,
+      "target_lufs": -19,
+      "sha256": "17e55bd71e7cccbf44220c19e256ce372bef62c9d658ebb643ca97db15710379"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_expansion.mp3",
+      "source": "avg/d_avg_machineactive.wav",
+      "max_duration_seconds": 1.4,
+      "target_lufs": -19,
+      "sha256": "faab0aa1d9c678af30d01ad9c416dbfb44e332d6454920561e7b0d284f9d2521"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_forced.mp3",
+      "source": "battle/b_ui/b_ui_dooralarm.wav",
+      "max_duration_seconds": 0.85,
+      "target_lufs": -20,
+      "sha256": "da47c099aca9c33d24549b9ed66884a2c1729ffc8ed5a1420f5ad0d15de0480d"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_threshold.mp3",
+      "source": "avg/d_avg_activation.wav",
+      "max_duration_seconds": 1.3,
+      "target_lufs": -19,
+      "sha256": "2f9b729086f26bd6824bd9a97a069ecacf0d4fd1f522e831ca406021f33942e1"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_colorblind.mp3",
+      "source": "avg/d_avg_scan.wav",
+      "max_duration_seconds": 1.2,
+      "target_lufs": -20,
+      "sha256": "f00080793a92261a1c1c37c5584c52cf05619fbae5cd2595fbd02ab27a45b1c8"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_colorblindplus.mp3",
+      "source": "battle/b_char/b_char_darkharm.wav",
+      "max_duration_seconds": 1.2,
+      "target_lufs": -19,
+      "sha256": "e2dea1d112951acb25f8888acc721a98e9405946df3e19bf8d854e0dd1278aed"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_recycle.mp3",
+      "source": "battle/b_char/b_char_healboost.wav",
+      "max_duration_seconds": 1.2,
+      "target_lufs": -19,
+      "sha256": "4ab3115a2348cc4796c69dcfdadf65881e770a838fb580b7541c1fc1711f24f7"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_demotion.mp3",
+      "source": "battle/b_char/b_char_breakingline.wav",
+      "max_duration_seconds": 1.1,
+      "target_lufs": -19,
+      "sha256": "6037fae97461b09503ffacda134b31fee09601227838323fc711f1e48171dd3d"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_mimic.mp3",
+      "source": "battle/b_char/b_char_getcast.wav",
+      "max_duration_seconds": 1,
+      "target_lufs": -19,
+      "sha256": "cfb5f263d86d887123b1ad943e728d51b9576cb9fcc5bf8d4218b715cc2e7be0"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_shield.mp3",
+      "source": "battle/b_char/b_char_addshield.wav",
+      "max_duration_seconds": 1,
+      "target_lufs": -19,
+      "sha256": "6b69e9bb8ce10e4144715ac27f74c74a7d1bb559e99e1ccd53bcdbbee892924d"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_overload.mp3",
+      "source": "battle/b_char/b_char_atkboost.wav",
+      "max_duration_seconds": 1.3,
+      "target_lufs": -18,
+      "sha256": "3bb422f98b3496fdc6c3a61ec704bb83c68dde6cd496f48e3288ab36c4bf768e"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_lock.mp3",
+      "source": "avg/d_avg_mechalock.wav",
+      "max_duration_seconds": 1,
+      "target_lufs": -19,
+      "sha256": "4f3a49ba8249f3ba996a707e2a228f23a67b3c17b8a833ab69b704344e91149c"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_reposition.mp3",
+      "source": "battle/b_ui/b_ui_whoosh1.wav",
+      "max_duration_seconds": 0.95,
+      "target_lufs": -19,
+      "sha256": "6e86b623c1ddf7649fa2879d8d8f621bb0ccf5cc6fef8e3a7d3532d6bb01ac3c"
+    },
+    {
+      "file": "assets/audio/sfx/cards/card_decoy.mp3",
+      "source": "battle/b_char/b_char_tokenset.wav",
+      "max_duration_seconds": 1,
+      "target_lufs": -19,
+      "sha256": "6219fc5c9854b28ddf8037bc27036e90c88a65a9901c690556552e76d35d6ff1"
+    }
+  ]
+}

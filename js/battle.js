@@ -215,6 +215,7 @@ function takeAction(action) {
   presentResult(before,previousTurn,ui.game.drainEvents());
 }
 function presentResult(before,previousTurn,events) {
+  AudioSystem.result(before, events, ui.game);
   if (ui.net?.host) netPush(events);
   ui.busy = true;
   renderBattle();

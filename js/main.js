@@ -1,4 +1,5 @@
 "use strict";
+AudioSystem.init();
 ui.tests = runRegressionTests();
 document.documentElement.dataset.engineTests = ui.tests.failed.length ? "failed" : "passed";
 window.Fourfold = Object.freeze({Engine:FourfoldEngine,cards:CARDS,runTests:runRegressionTests,get diagnostics() { return ui.tests; }});

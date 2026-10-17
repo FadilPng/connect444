@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/PseudoMon/arknights-audio",
+  "commit": "d6de8b50e23bdfa5cf9d391f4ccb3798d7baf4db",
+  "files": {
+    "menu.mp3": "music/act12d0d0/m_sys_dontmaketrouble_loop.wav",
+    "battle.mp3": "music/act14d0d0/m_bat_talulhahard_loop.wav",
+    "click.mp3": "avg/d_avg_button.wav",
+    "drop.mp3": "battle/b_char/b_char_set.wav",
+    "blast.mp3": "avg/d_avg_grenade_explosion.wav",
+    "shield.mp3": "battle/b_char/b_char_addshield.wav",
+    "shift.mp3": "battle/b_char/b_char_emp.wav",
+    "skill.mp3": "battle/b_ui/b_ui_getcast.wav",
+    "win.mp3": "battle/b_ui/b_ui_win.wav",
+    "error.mp3": "battle/b_ui/b_ui_lose.wav",
+    "offer.mp3": "battle/b_ui/b_ui_rewardappear.wav"
+  },
+  "processing": "WAV sources encoded to MP3. Music normalized to -18 LUFS / -2 dBTP; SFX to -16 LUFS / -2 dBTP."
+}

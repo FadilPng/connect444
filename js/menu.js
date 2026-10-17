@@ -2,6 +2,7 @@
 /* ---------- MAIN MENU ---------- */
 const menu = $("menuView"), shell = $("appShell");
 function showMenu() {
+  AudioSystem.setScene("menu");
   netClose();
   document.querySelector(".session-label").lastChild.textContent = "LOCAL / 2 OPERATORS";
   closeDialog(false);

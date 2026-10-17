@@ -91,14 +91,16 @@ function toggleCard(id) {
   if (index >= 0) chosen.splice(index,1);
   else {
     const sum = chosen.reduce((total,x) => total+CARD_BY_ID[x].weight,0);
-    if (sum+card.weight > 15) { renderIntel(card); toast(`Poin tidak cukup. Tersisa ${15-sum} PT, ${card.name} memerlukan ${card.weight} PT.`); return; }
+    if (sum+card.weight > 15) { renderIntel(card); AudioSystem.sfx("error"); toast(`Poin tidak cukup. Tersisa ${15-sum} PT, ${card.name} memerlukan ${card.weight} PT.`); return; }
     chosen.push(id);
   }
+  AudioSystem.sfx("select");
   ui.inspected = id;
   renderSetup();
   announce(`${card.name} ${index >= 0 ? "dihapus dari" : "ditambahkan ke"} loadout Player ${ui.player}.`);
 }
 function setView(name) {
+  AudioSystem.setScene(name === "battle" ? "battle" : "menu");
   hideTooltip();
   $("setupView").hidden = name !== "setup";
   $("battleView").hidden = name !== "battle";
@@ -118,6 +120,7 @@ function startOperation() {
   ui.resultShown = false;
   ui.focusCell = {r:0,c:0};
   setView("battle");
+  AudioSystem.sfx("start");
   renderBattle();
   window.scrollTo({top:0,behavior:"auto"});
   announce("Operasi dimulai. Giliran Player 01. Deploy koin atau gunakan kartu.");

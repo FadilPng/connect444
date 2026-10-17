@@ -6,13 +6,12 @@
   <meta name="theme-color" content="#16191a">
   <meta name="description" content="Fourfold, permainan Connect Four dua pemain dengan 23 kartu taktis.">
   <title>FOURFOLD / Tactical Connection</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 48'%3E%3Cpath d='M22 2 42 43H2L22 2Z' fill='%23111416' stroke='%23e5e8df' stroke-width='2'/%3E%3Cpath d='M22 12 33 36H11l11-24Z' fill='%23d9ed7b'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=custom-audio-5">
 </head>
 <body>
   <main class="menu-view" id="menuView" aria-label="Menu utama">
@@ -62,6 +61,24 @@
       <footer class="workspace-footer"><span class="footer-sign"><span data-icon="signal"></span>SYSTEM ONLINE / LOCAL SESSION</span><span>FOURFOLD // CONNECT FOUR, REDEFINED</span></footer>
     </main>
   </div>
+  <aside class="audio-console" id="audioConsole" aria-label="Pengaturan audio">
+    <button type="button" id="audioPower" aria-pressed="false">AUDIO / OFF</button>
+    <details id="audioMixer">
+      <summary aria-label="Buka pengaturan volume">MIXER</summary>
+      <div class="audio-panel">
+        <div class="eyebrow">CUSTOM AUDIO / YOUR FILES</div>
+        <p id="audioTrack">bgm/main_menu.mp3</p>
+        <p id="audioStatus" class="audio-status" role="status" aria-live="polite">AUDIO OFF</p>
+        <div class="audio-actions"><button type="button" id="audioRetry">RELOAD AUDIO FILES</button></div>
+        <div class="audio-switches"><button type="button" id="audio-bgm" aria-pressed="true">BGM / ON</button><button type="button" id="audio-sfx" aria-pressed="true">SFX / ON</button></div>
+        <label for="audio-musicVolume">MUSIC <output id="audio-musicVolume-value" for="audio-musicVolume">56%</output></label>
+        <input id="audio-musicVolume" type="range" min="0" max="100" value="56">
+        <label for="audio-sfxVolume">EFFECTS <output id="audio-sfxVolume-value" for="audio-sfxVolume">70%</output></label>
+        <input id="audio-sfxVolume" type="range" min="0" max="100" value="70">
+        <small>Isi file sendiri di assets/audio/. Daftar nama ada di assets/audio/README.md. File kosong/belum ada = tanpa suara. Setelah menambah file, tekan RELOAD AUDIO FILES.</small>
+      </div>
+    </details>
+  </aside>
   <div id="modalRoot"></div>
   <div class="tooltip" id="cardTooltip" role="tooltip" hidden></div>
   <div class="toast-stack" id="toastStack" role="status" aria-live="polite"></div>
@@ -71,6 +88,7 @@
   <script src="js/engine.js"></script>
   <script src="js/icons.js"></script>
   <script src="js/core.js"></script>
+  <script src="js/audio.js?v=custom-audio-5"></script>
   <script src="js/setup.js"></script>
   <script src="js/battle.js"></script>
   <script src="js/effects.js"></script>
@@ -78,5 +96,5 @@
   <script src="js/main.js"></script>
   <script src="js/net.js"></script>
   <script src="js/menu.js"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c032e64979f87d',t:'MTc5MjI0OTQ5OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
