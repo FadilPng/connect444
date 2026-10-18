@@ -144,6 +144,9 @@ async function netHost(name, tries = 0) {
     me: 1,
     name,
     opp: "",
+    code,
+    mode: "classic",
+    lobby: {},
     ready: {},
     peer: new Peer(PEER_PREFIX + code, opts),
   });
@@ -181,6 +184,9 @@ async function netJoin(name, code) {
     me: 2,
     name,
     opp: "",
+    code,
+    mode: "classic",
+    lobby: {},
     ready: {},
     peer: new Peer(opts),
   });
@@ -247,7 +253,7 @@ function netRecv(n, m) {
       if (n.opp) break;
       n.opp = cleanName(m.name) || "OPPONENT";
       if (n.host) netSend({ t: "hello", name: n.name });
-      goSetup();
+      goLobby();
       break;
     case "ready":
       if (n.host && !n.ready[2]) {
@@ -259,6 +265,24 @@ function netRecv(n, m) {
       break;
     case "reject":
       if (!n.host) netFail("Loadout ditolak host. Muat ulang dan coba lagi.");
+      break;
+    case "lobby":
+      n.lobby[n.me === 1 ? 2 : 1] = !!m.ready;
+      renderLobby();
+      if (n.host && n.lobby[1] && n.lobby[2] && !$("lobbyView").hidden)
+        startFromLobby();
+      break;
+    case "start":
+      if (!n.host && !$("lobbyView").hidden) goSetup();
+      break;
+    case "tolobby":
+      if (ui.game?.s.ended && $("lobbyView").hidden) backToLobby(false);
+      break;
+    case "mode":
+      if (LOBBY_MODES.some((mode) => mode.enabled && mode.id === m.mode)) {
+        n.mode = m.mode;
+        renderLobby();
+      }
       break;
     case "act":
       if (n.host) hostAct(m);
@@ -277,6 +301,7 @@ function netLost(n) {
   if (ui.net !== n || n.closing || n.lost) return;
   n.lost = true;
   clearInterval(n.hb);
+  if (!$("lobbyView").hidden) renderLobby();
   const name = (n.opp || "LAWAN").toUpperCase();
   if (ui.game?.s.ended) {
     toast(`${name} meninggalkan room.`);
@@ -300,12 +325,152 @@ function goSetup() {
   menu.hidden = true;
   shell.hidden = false;
   document.body.style.overflow = "";
+  // Reset penanda siap (lobi + loadout) supaya match berikutnya mulai bersih.
+  ui.net.ready = {};
+  ui.net.lobby = { 1: false, 2: false };
   beginSetup();
   ui.player = ui.net.me;
   renderSetup(true);
   document.querySelector(
     ".session-label"
   ).lastChild.textContent = `ONLINE / VS ${ui.net.opp.toUpperCase()}`;
+}
+/* ---------- ONLINE LOBBY ---------- */
+// Lobi = ruang tunggu setelah konek, sebelum loadout. Kedua pemain harus READY,
+// lalu host otomatis memulai setup. Match selesai -> kembali ke lobi (bukan menu),
+// jadi satu room bisa dipakai berkali-kali tanpa create ulang.
+const LOBBY_MODES = [
+  {
+    id: "classic",
+    name: "CLASSIC",
+    desc: "Aturan standar. 23 kartu, 15 poin.",
+    glyph: "trophy",
+    enabled: true,
+  },
+  {
+    id: "ban",
+    name: "BAN CARD",
+    desc: "Kedua pemain mem-ban kartu. Segera hadir.",
+    glyph: "close",
+    enabled: false,
+  },
+  {
+    id: "cardout",
+    name: "CARD OUT",
+    desc: "??? Segera hadir.",
+    glyph: "cards",
+    enabled: false,
+  },
+];
+function goLobby() {
+  closeDialog(false);
+  menu.hidden = true;
+  shell.hidden = false;
+  document.body.style.overflow = "";
+  const n = ui.net;
+  n.lobby = { 1: false, 2: false };
+  n.ready = {};
+  setView("lobby");
+  renderLobby();
+  document.querySelector(
+    ".session-label"
+  ).lastChild.textContent = `ONLINE / VS ${(n.opp || "?").toUpperCase()}`;
+  $("lobbyReady").onclick = toggleLobbyReady;
+  $("lobbyLeave").onclick = () => {
+    netClose();
+    showMenu();
+  };
+  announce(`Masuk lobi online melawan ${n.opp}.`);
+}
+function lobbyPlayerRow(p) {
+  const n = ui.net,
+    you = p === n.me,
+    gone = !you && (n.lost || !n.opp),
+    ready = !gone && !!n.lobby[p];
+  return `<div class="player-row ${you ? "you" : ""} ${ready ? "ready" : ""} ${
+    gone ? "gone" : ""
+  }"><span class="player-emblem" style="color:${
+    p === 1 ? "var(--cyan)" : "var(--orange)"
+  }">${icon(`operator${p}`)}</span><span class="player-meta"><strong>${safe(
+    (you ? n.name : n.opp || "WAITING...").toUpperCase()
+  )}</strong><small>P0${p} / ${p === 1 ? "HOST" : "GUEST"}${
+    you ? " / YOU" : ""
+  }</small></span><span class="ready-pill">${
+    gone ? "LEFT" : ready ? "READY" : "NOT READY"
+  }</span></div>`;
+}
+function renderLobby() {
+  const n = ui.net;
+  if (!n || $("lobbyView").hidden) return;
+  $("lobbyCode").textContent = n.code || "-----";
+  const oppGone = n.lost || !n.opp;
+  $("lobbyCount").textContent = oppGone ? "1 / 2" : "2 / 2";
+  $("lobbyPlayers").innerHTML = lobbyPlayerRow(1) + lobbyPlayerRow(2);
+  $("lobbyModes").innerHTML = LOBBY_MODES.map((m) => {
+    const active = n.mode === m.id;
+    return `<button type="button" class="gmode-card ${
+      active ? "active" : ""
+    }" data-modepick="${m.id}" ${
+      m.enabled ? "" : "disabled"
+    } aria-pressed="${active}"><span class="gmode-glyph">${icon(
+      m.glyph
+    )}</span><span class="gmode-text"><strong>${m.name}</strong><small>${
+      m.desc
+    }</small></span>${
+      m.enabled
+        ? active
+          ? '<span class="gmode-tag on">ACTIVE</span>'
+          : ""
+        : '<span class="gmode-tag">SOON</span>'
+    }</button>`;
+  }).join("");
+  $("lobbyModes")
+    .querySelectorAll("[data-modepick]")
+    .forEach((button) => {
+      button.onclick = () => {
+        const mode = LOBBY_MODES.find((m) => m.id === button.dataset.modepick);
+        if (!mode?.enabled || ui.net.mode === mode.id) return;
+        ui.net.mode = mode.id;
+        netSend({ t: "mode", mode: mode.id });
+        renderLobby();
+      };
+    });
+  const myReady = !!n.lobby[n.me],
+    oppReady = !oppGone && !!n.lobby[n.me === 1 ? 2 : 1];
+  $("lobbyStatus").textContent = oppGone
+    ? "OPPONENT LEFT THE ROOM."
+    : myReady && oppReady
+    ? "BOTH READY. STARTING OPERATION..."
+    : myReady
+    ? "WAITING FOR OPPONENT READY..."
+    : oppReady
+    ? "OPPONENT READY. TEKAN READY BILA SIAP."
+    : "TEKAN READY BILA SIAP BERMAIN.";
+  $("lobbyReady").disabled = oppGone;
+  $("lobbyReady").innerHTML = myReady
+    ? `<span>UNREADY</span>${icon("close")}`
+    : `<span>READY</span>${icon("check")}`;
+}
+function toggleLobbyReady() {
+  const n = ui.net;
+  if (!n || n.lost || !n.opp || $("lobbyView").hidden) return;
+  n.lobby[n.me] = !n.lobby[n.me];
+  netSend({ t: "lobby", ready: n.lobby[n.me] });
+  AudioSystem.sfx("select");
+  renderLobby();
+  if (n.host && n.lobby[1] && n.lobby[2] && !$("lobbyView").hidden)
+    startFromLobby();
+}
+function startFromLobby() {
+  netSend({ t: "start" });
+  goSetup();
+}
+function backToLobby(send = true) {
+  const n = ui.net;
+  if (!n || n.closing) return;
+  if (send) netSend({ t: "tolobby" });
+  goLobby();
+  toast("Kembali ke lobi. Ready untuk match berikutnya.");
 }
 function netConfirm() {
   const n = ui.net,
@@ -411,7 +576,7 @@ function showOnline() {
   showDialog(
     `<button class="dialog-close" data-close aria-label="Tutup">${icon(
       "close"
-    )}</button><div class="eyebrow">ONLINE / LOBBY</div><h2 id="modalTitle">FIND AN OPPONENT.</h2><p class="dialog-intro">Masukkan nama, lalu buat room atau gabung dengan kode. Lawan tidak bisa melihat loadout-mu.</p><label class="eyebrow" for="playerName">CALLSIGN</label><input class="dialog-field" id="playerName" maxlength="14" placeholder="Nama kamu" autocomplete="off" spellcheck="false" value="${saved}"><div class="option-grid stack"><button class="option-button" id="onlineCreate">${icon(
+    )}</button><div class="eyebrow">ONLINE / FIND OPPONENT</div><h2 id="modalTitle">FIND AN OPPONENT.</h2><p class="dialog-intro">Masukkan nama, lalu buat room atau gabung dengan kode. Lawan tidak bisa melihat loadout-mu.</p><label class="eyebrow" for="playerName">CALLSIGN</label><input class="dialog-field" id="playerName" maxlength="14" placeholder="Nama kamu" autocomplete="off" spellcheck="false" value="${saved}"><div class="option-grid stack"><button class="option-button" id="onlineCreate">${icon(
       "signal"
     )}<span><strong>CREATE ROOM</strong><small>Jadi host, kirim kode ke lawan</small></span></button><div class="option-button join-box">${icon(
       "search"

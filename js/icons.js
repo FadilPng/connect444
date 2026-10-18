@@ -77,14 +77,17 @@ const ICONS = {
   trophy:
     '<path d="M11 5h18v14c0 8-18 8-18 0V5Zm0 3H4v8c0 5 7 6 7 6m18-14h7v8c0 5-7 6-7 6M20 25v9m-9 3h18M15 34h10"/>',
 };
-function icon(name, className = "") {
-  return `<svg class="${className}" width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${
+// Warna ikon diatur 100% via CSS (currentColor), mengikuti arsitektur asli:
+// .card-tile .card-icon { color: var(--card-color, #e3e6df); }
+// → rest = warna kategori, hover = lime, selected = gelap. Tanpa JS.
+function icon(name, className = "", size = 40) {
+  return `<svg class="${className}" width="${size}" height="${size}" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${
     ICONS[name] || ICONS.crosshair
   }</svg>`;
 }
 function hydrateIcons(root = document) {
   root.querySelectorAll("[data-icon]").forEach((el) => {
-    el.innerHTML = icon(el.dataset.icon);
+    el.innerHTML = icon(el.dataset.icon, "", Number(el.dataset.size) || 40);
   });
 }
 function safe(value) {

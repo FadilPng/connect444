@@ -1,100 +1,530 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#16191a">
-  <meta name="description" content="Fourfold, permainan Connect Four dua pemain dengan 23 kartu taktis.">
-  <title>FOURFOLD / Tactical Connection</title>
-  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 48'%3E%3Cpath d='M22 2 42 43H2L22 2Z' fill='%23111416' stroke='%23e5e8df' stroke-width='2'/%3E%3Cpath d='M22 12 33 36H11l11-24Z' fill='%23d9ed7b'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css?v=custom-audio-5">
-</head>
-<body>
-  <main class="menu-view" id="menuView" aria-label="Menu utama">
-    <div class="menu-emblem" aria-hidden="true"><svg viewBox="0 0 44 48" fill="none" stroke="currentColor" stroke-width=".35"><path d="M22 2 42 43H2L22 2Z"/><path d="M22 12 33 36H11l11-24Z"/><path d="m16 29 8-11v15m-10-6h15"/></svg></div>
-    <div class="menu-top"><span><i class="status-dot"></i>SYSTEM ONLINE</span><span>FF / VER 1.0</span></div>
-    <div class="menu-main">
-      <header class="menu-title"><div class="eyebrow">TACTICAL CONNECTION</div><h1>FOURFOLD</h1><p>Empat koin. Satu koneksi. Keunggulan taktis dengan 23 kartu.</p></header>
-      <nav class="menu-list" aria-label="Pilih mode permainan">
-        <button type="button" class="menu-mode" data-mode="local"><span class="mode-icons"><span style="--c:var(--cyan)" data-icon="operator1"></span><span style="--c:var(--orange)" data-icon="operator2"></span></span><span class="mode-text"><strong>LOCAL COOP</strong><small>Dua operator, satu perangkat.</small></span><span class="mode-arrow" data-icon="arrow-right"></span><span class="mode-tag">OFFLINE</span></button>
-        <button type="button" class="menu-mode" data-mode="online"><span class="mode-icons"><span style="--c:var(--lime)" data-icon="signal"></span></span><span class="mode-text"><strong>ONLINE</strong><small>Tantang lawan lewat kode room.</small></span><span class="mode-arrow" data-icon="arrow-right"></span><span class="mode-tag"><i></i>STANDBY</span></button>
-      </nav>
-    </div>
-    <div class="menu-foot"><span>PILIH MODE / TEKAN 1 ATAU 2</span><span>FOURFOLD // CONNECT FOUR, REDEFINED</span></div>
-  </main>
-  <div class="app-shell" id="appShell" hidden>
-    <aside class="rail" aria-label="Navigasi utama">
-      <button class="rail-brand" id="brandHome" aria-label="Fourfold, kembali ke loadout"><svg viewBox="0 0 44 48" fill="none" aria-hidden="true"><path d="M22 2 42 43H2L22 2Z" stroke="#e5e8df" stroke-width="1.5"/><path d="M22 12 33 36H11l11-24Z" fill="#d9ed7b"/><path d="m16 29 8-11v15m-10-6h15" stroke="#192018" stroke-width="2.3"/></svg></button>
-      <nav class="rail-nav"><button class="rail-button active" id="navLoadout" aria-label="Loadout" aria-current="page"><span data-icon="grid"></span><span>LOADOUT</span></button><button class="rail-button" id="navBattle" aria-label="Operation"><span data-icon="crosshair"></span><span>OPERATION</span></button><button class="rail-button" id="navGuide" aria-label="Field guide"><span data-icon="book"></span><span>FIELD GUIDE</span></button></nav>
-      <div class="rail-bottom"><div class="rail-code">FF / TACTICAL CONNECTION</div><button class="rail-button" id="railMotion" aria-label="Pengaturan animasi"><span data-icon="settings"></span><span>SYSTEM</span></button></div>
-    </aside>
-    <header class="topbar"><div class="wordmark"><h1>FOURFOLD</h1><span class="brand-divider"></span><small>TACTICAL CONNECTION<br>LOCAL MULTIPLAYER SYSTEM</small></div><div class="top-actions"><span class="session-label mono"><i class="status-dot"></i>LOCAL / 2 OPERATORS</span><button class="icon-button" id="menuButton"><span data-icon="arrow-left"></span>MAIN MENU</button><button class="icon-button" id="guideButton"><span data-icon="book"></span>FIELD GUIDE</button></div></header>
-    <main class="workspace">
-      <section id="setupView" aria-labelledby="setupHeading" class="view-enter">
-        <header class="page-heading"><div><div class="eyebrow">01 / PREPARATION PHASE</div><h2 id="setupHeading">BUILD YOUR LOADOUT.</h2><p>Pilih kemampuanmu. Ubah jalannya pertempuran.</p></div><div class="setup-steps" aria-label="Tahapan pemilihan"><div class="step active" id="step1"><span class="step-number">01</span>PLAYER ONE</div><span class="step-link"></span><div class="step" id="step2"><span class="step-number">02</span>PLAYER TWO</div></div></header>
-        <div class="setup-layout">
-          <section aria-label="Katalog kartu taktis"><div class="catalog-toolbar"><div class="filters" role="group" aria-label="Kategori kartu"><button class="filter active" data-filter="all" aria-pressed="true">ALL CARDS <span class="filter-count">23</span></button><button class="filter" data-filter="offense" aria-pressed="false">OFFENSE</button><button class="filter" data-filter="control" aria-pressed="false">CONTROL</button><button class="filter" data-filter="support" aria-pressed="false">SUPPORT</button></div><label class="search"><span data-icon="search"></span><input id="cardSearch" type="search" placeholder="Search cards..." aria-label="Cari kartu" autocomplete="off"></label></div><div class="catalog" id="catalog"></div><p class="catalog-note"><span data-icon="info"></span>HOVER / FOCUS TO INSPECT. TAP TO SELECT.</p></section>
-          <aside class="loadout-sidebar" aria-label="Ringkasan loadout">
-            <div class="operator-head"><div><div class="eyebrow">TACTICAL OPERATOR</div><h3 id="setupPlayer">PLAYER 01</h3></div><span class="operator-icon" id="setupEmblem"></span></div>
-            <div class="budget-block"><div class="budget-heading"><span class="eyebrow">DEPLOYMENT POINTS</span><span class="budget-value"><span id="budgetSpent">0</span><small>/ 15</small></span></div><div class="budget-track" id="budgetTrack" aria-label="0 dari 10 poin"></div></div>
-            <div class="selected-loadout" id="selectedLoadout"></div>
-            <div class="intel" id="setupIntel"><div class="intel-top"><span class="eyebrow">CARD INTEL</span><span class="mono">// STANDBY</span></div><span class="intel-symbol" data-icon="crosshair"></span><h3>Knowledge is an edge.</h3><p>Arahkan kursor atau fokuskan kartu untuk melihat kemampuan dan durasinya.</p><div class="intel-meta"><span>23 TACTICAL CARDS</span><span>FF / 01</span></div></div>
-            <div class="confirm-block"><button class="primary-button" id="setupNext" disabled><span>CONFIRM LOADOUT</span><span data-icon="arrow-right"></span></button><p class="confirm-note" id="confirmNote">Player 02 memilih setelah konfirmasi.</p></div>
-          </aside>
-        </div>
-      </section>
-      <section id="battleView" hidden aria-labelledby="battleHeading">
-        <header class="page-heading battle-heading"><div><div class="eyebrow">02 / OPERATION ACTIVE</div><h2 id="battleHeading">CONTROL THE FIELD.</h2><p>Empat koin. Satu koneksi. Keunggulan taktis.</p></div><button class="subtle-button" id="newMatch">NEW OPERATION</button></header>
-        <div class="battle-layout">
-          <section class="field-section" aria-label="Medan permainan">
-            <div class="field-status"><div class="turn-display"><span class="turn-emblem" id="turnEmblem">01</span><div><strong id="turnName">PLAYER 01</strong><small id="turnPrompt">AWAITING COMMAND</small></div></div><span class="turn-number">TURN<b id="turnCount">001</b></span></div>
-            <div class="arena" id="arena"><div class="field-caption"><span>FF-01 / TACTICAL FIELD</span><span id="targetCaption">OBJECTIVE : CONNECT 4</span></div><div class="board-frame"><div class="column-headers" id="columnHeaders"></div><div class="board-row"><div class="row-headers" id="rowHeaders"></div><div class="board-stack"><div class="board" id="board" role="group" aria-label="Papan Connect Four"></div><div class="fx-layer" id="fxLayer" aria-hidden="true"></div></div><div class="side-headers" id="sideHeaders"></div></div><div class="board-tools"><span class="gravity-label" id="gravityLabel"></span><div class="size-control" id="sizeControl" role="group" aria-label="Ukuran papan"><span>SIZE</span><button type="button" data-size="s" aria-pressed="false">S</button><button type="button" data-size="m" aria-pressed="false">M</button><button type="button" data-size="l" aria-pressed="false">L</button></div><span id="boardInfo">07 COL / 06 ROW</span></div></div></div>
-            <div class="field-actions"><button class="action primary" id="dropAction"><span data-icon="deploy"></span><span><strong>DEPLOY COIN</strong><small>Klik jalur pada papan</small></span></button><button class="action" id="cardAction"><span data-icon="cards"></span><span><strong>TACTICAL CARD</strong><small>Tarik 3 kartu dari loadout</small></span></button></div><div class="game-notice" id="gameNotice" role="status"></div><button class="subtle-button" id="passAction" hidden>PASS TURN / NO LEGAL ACTION</button>
-          </section>
-          <aside class="battle-sidebar" aria-label="Status operasi"><section class="hand-section"><div class="side-heading"><h3>YOUR LOADOUT</h3><span class="mono" id="handBudget">0 / 5 PT</span></div><div class="hand" id="hand"></div><p class="catalog-note">HOVER FOR INTEL</p></section><section class="protocol-section"><div class="side-heading"><h3>ACTIVE PROTOCOLS</h3><span class="mono" id="effectCount">00</span></div><div class="effect-list" id="effectList"></div></section><section class="log-section"><div class="side-heading"><h3>OPERATION LOG</h3><span class="mono">LIVE</span></div><div class="log" id="log"></div></section><div class="battle-bottom"><div class="score-line"><span>P1<b id="score1">0</b></span><span>P2<b id="score2">0</b></span></div><button class="icon-button" id="battleRules"><span data-icon="info"></span>RULES</button></div></aside>
-        </div>
-      </section>
-      <footer class="workspace-footer"><span class="footer-sign"><span data-icon="signal"></span>SYSTEM ONLINE / LOCAL SESSION</span><span>FOURFOLD // CONNECT FOUR, REDEFINED</span></footer>
-    </main>
-  </div>
-  <aside class="audio-console" id="audioConsole" aria-label="Pengaturan audio">
-    <button type="button" id="audioPower" aria-pressed="false">AUDIO / OFF</button>
-    <details id="audioMixer">
-      <summary aria-label="Buka pengaturan volume">MIXER</summary>
-      <div class="audio-panel">
-        <div class="eyebrow">CUSTOM AUDIO / YOUR FILES</div>
-        <p id="audioTrack">bgm/main_menu.mp3</p>
-        <p id="audioStatus" class="audio-status" role="status" aria-live="polite">AUDIO OFF</p>
-        <div class="audio-actions"><button type="button" id="audioRetry">RELOAD AUDIO FILES</button></div>
-        <div class="audio-switches"><button type="button" id="audio-bgm" aria-pressed="true">BGM / ON</button><button type="button" id="audio-sfx" aria-pressed="true">SFX / ON</button></div>
-        <label for="audio-musicVolume">MUSIC <output id="audio-musicVolume-value" for="audio-musicVolume">56%</output></label>
-        <input id="audio-musicVolume" type="range" min="0" max="100" value="56">
-        <label for="audio-sfxVolume">EFFECTS <output id="audio-sfxVolume-value" for="audio-sfxVolume">70%</output></label>
-        <input id="audio-sfxVolume" type="range" min="0" max="100" value="70">
-        <small>Isi file sendiri di assets/audio/. Daftar nama ada di assets/audio/README.md. File kosong/belum ada = tanpa suara. Setelah menambah file, tekan RELOAD AUDIO FILES.</small>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#16191a" />
+    <meta
+      name="description"
+      content="Fourfold, permainan Connect Four dua pemain dengan 23 kartu taktis." />
+    <title>FOURFOLD / Tactical Connection</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 48'%3E%3Cpath d='M22 2 42 43H2L22 2Z' fill='%23111416' stroke='%23e5e8df' stroke-width='2'/%3E%3Cpath d='M22 12 33 36H11l11-24Z' fill='%23d9ed7b'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="css/styles.css?v=custom-audio-5" />
+  </head>
+  <body>
+    <main class="menu-view" id="menuView" aria-label="Menu utama">
+      <div class="menu-emblem" aria-hidden="true">
+        <svg
+          viewBox="0 0 44 48"
+          fill="none"
+          stroke="currentColor"
+          stroke-width=".35">
+          <path d="M22 2 42 43H2L22 2Z" />
+          <path d="M22 12 33 36H11l11-24Z" />
+          <path d="m16 29 8-11v15m-10-6h15" />
+        </svg>
       </div>
-    </details>
-  </aside>
-  <div id="modalRoot"></div>
-  <div class="tooltip" id="cardTooltip" role="tooltip" hidden></div>
-  <div class="toast-stack" id="toastStack" role="status" aria-live="polite"></div>
-  <div class="sr-only" id="liveRegion" aria-live="polite" aria-atomic="true"></div>
-  <noscript><p style="padding:30px">Aktifkan JavaScript untuk memainkan Fourfold. Semua file game ada di folder js/.</p></noscript>
-  <script src="js/cards.js"></script>
-  <script src="js/engine.js"></script>
-  <script src="js/icons.js"></script>
-  <script src="js/core.js"></script>
-  <script src="js/audio.js?v=custom-audio-5"></script>
-  <script src="js/setup.js"></script>
-  <script src="js/battle.js"></script>
-  <script src="js/effects.js"></script>
-  <script src="js/tests.js"></script>
-  <script src="js/main.js"></script>
-  <script src="js/net.js"></script>
-  <script src="js/menu.js"></script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c032e64979f87d',t:'MTc5MjI0OTQ5OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+      <div class="menu-top">
+        <span><i class="status-dot"></i>SYSTEM ONLINE</span
+        ><span>FF / VER 1.0</span>
+      </div>
+      <div class="menu-main">
+        <header class="menu-title">
+          <div class="eyebrow">TACTICAL CONNECTION</div>
+          <h1>FOURFOLD</h1>
+          <p>Empat koin. Satu koneksi. Keunggulan taktis dengan 23 kartu.</p>
+        </header>
+        <nav class="menu-list" aria-label="Pilih mode permainan">
+          <button type="button" class="menu-mode" data-mode="local">
+            <span class="mode-icons"
+              ><span style="--c: var(--cyan)" data-icon="operator1"></span
+              ><span
+                style="--c: var(--orange)"
+                data-icon="operator2"></span></span
+            ><span class="mode-text"
+              ><strong>LOCAL COOP</strong
+              ><small>Dua operator, satu perangkat.</small></span
+            ><span class="mode-arrow" data-icon="arrow-right"></span
+            ><span class="mode-tag">OFFLINE</span>
+          </button>
+          <button type="button" class="menu-mode" data-mode="online">
+            <span class="mode-icons"
+              ><span style="--c: var(--lime)" data-icon="signal"></span></span
+            ><span class="mode-text"
+              ><strong>ONLINE</strong
+              ><small>Tantang lawan lewat kode room.</small></span
+            ><span class="mode-arrow" data-icon="arrow-right"></span
+            ><span class="mode-tag"><i></i>STANDBY</span>
+          </button>
+        </nav>
+      </div>
+      <div class="menu-foot">
+        <span>PILIH MODE / TEKAN 1 ATAU 2</span
+        ><span>FOURFOLD // CONNECT FOUR, REDEFINED</span>
+      </div>
+    </main>
+    <div class="app-shell" id="appShell" hidden>
+      <aside class="rail" aria-label="Navigasi utama">
+        <button
+          class="rail-brand"
+          id="brandHome"
+          aria-label="Fourfold, kembali ke loadout">
+          <svg viewBox="0 0 44 48" fill="none" aria-hidden="true">
+            <path d="M22 2 42 43H2L22 2Z" stroke="#e5e8df" stroke-width="1.5" />
+            <path d="M22 12 33 36H11l11-24Z" fill="#d9ed7b" />
+            <path
+              d="m16 29 8-11v15m-10-6h15"
+              stroke="#192018"
+              stroke-width="2.3" />
+          </svg>
+        </button>
+        <nav class="rail-nav">
+          <button
+            class="rail-button active"
+            id="navLoadout"
+            aria-label="Loadout"
+            aria-current="page">
+            <span data-icon="grid"></span><span>LOADOUT</span></button
+          ><button class="rail-button" id="navBattle" aria-label="Operation">
+            <span data-icon="crosshair"></span><span>OPERATION</span></button
+          ><button class="rail-button" id="navGuide" aria-label="Field guide">
+            <span data-icon="book"></span><span>FIELD GUIDE</span>
+          </button>
+        </nav>
+        <div class="rail-bottom">
+          <div class="rail-code">FF / TACTICAL CONNECTION</div>
+          <button
+            class="rail-button"
+            id="railMotion"
+            aria-label="Pengaturan animasi">
+            <span data-icon="settings"></span><span>SYSTEM</span>
+          </button>
+        </div>
+      </aside>
+      <header class="topbar">
+        <div class="wordmark">
+          <h1>FOURFOLD</h1>
+          <span class="brand-divider"></span
+          ><small>TACTICAL CONNECTION<br />LOCAL MULTIPLAYER SYSTEM</small>
+        </div>
+        <div class="top-actions">
+          <span class="session-label mono"
+            ><i class="status-dot"></i>LOCAL / 2 OPERATORS</span
+          ><button class="icon-button" id="menuButton">
+            <span data-icon="arrow-left"></span>MAIN MENU</button
+          ><button class="icon-button" id="guideButton">
+            <span data-icon="book"></span>FIELD GUIDE
+          </button>
+        </div>
+      </header>
+      <main class="workspace">
+        <section id="lobbyView" hidden aria-labelledby="lobbyHeading">
+          <header class="page-heading">
+            <div>
+              <div class="eyebrow">00 / ONLINE LOBBY</div>
+              <h2 id="lobbyHeading">READY YOUR OPERATOR.</h2>
+              <p>Dua-duanya ready, operasi langsung jalan.</p>
+            </div>
+            <div class="lobby-code-block">
+              <span class="eyebrow">ROOM CODE</span>
+              <span class="lobby-code" id="lobbyCode">-----</span>
+            </div>
+          </header>
+          <div class="lobby-layout">
+            <section class="lobby-panel" aria-label="Operator di room">
+              <div class="side-heading">
+                <h3>OPERATORS</h3>
+                <span class="mono" id="lobbyCount">1 / 2</span>
+              </div>
+              <div id="lobbyPlayers"></div>
+              <p class="lobby-hint mono" id="lobbyStatus"></p>
+            </section>
+            <section class="lobby-panel" aria-label="Mode permainan">
+              <div class="side-heading">
+                <h3>GAME MODE</h3>
+                <span class="mono">SEASON 01</span>
+              </div>
+              <div class="gmode-grid" id="lobbyModes"></div>
+            </section>
+          </div>
+          <div class="lobby-actions">
+            <button class="primary-button" id="lobbyReady" type="button">
+              <span>READY</span><span data-icon="check"></span>
+            </button>
+            <button class="subtle-button" id="lobbyLeave" type="button">
+              LEFT ROOM
+            </button>
+          </div>
+        </section>
+        <section
+          id="setupView"
+          aria-labelledby="setupHeading"
+          class="view-enter">
+          <header class="page-heading">
+            <div>
+              <div class="eyebrow">01 / PREPARATION PHASE</div>
+              <h2 id="setupHeading">BUILD YOUR LOADOUT.</h2>
+              <p>Pilih kemampuanmu. Ubah jalannya pertempuran.</p>
+            </div>
+            <div class="setup-steps" aria-label="Tahapan pemilihan">
+              <div class="step active" id="step1">
+                <span class="step-number">01</span>PLAYER ONE
+              </div>
+              <span class="step-link"></span>
+              <div class="step" id="step2">
+                <span class="step-number">02</span>PLAYER TWO
+              </div>
+            </div>
+          </header>
+          <div class="setup-layout">
+            <section aria-label="Katalog kartu taktis">
+              <div class="catalog-toolbar">
+                <div class="filters" role="group" aria-label="Kategori kartu">
+                  <button
+                    class="filter active"
+                    data-filter="all"
+                    aria-pressed="true">
+                    ALL CARDS <span class="filter-count">23</span></button
+                  ><button
+                    class="filter"
+                    data-filter="offense"
+                    aria-pressed="false">
+                    OFFENSE</button
+                  ><button
+                    class="filter"
+                    data-filter="control"
+                    aria-pressed="false">
+                    CONTROL</button
+                  ><button
+                    class="filter"
+                    data-filter="support"
+                    aria-pressed="false">
+                    SUPPORT
+                  </button>
+                </div>
+                <label class="search"
+                  ><span data-icon="search"></span
+                  ><input
+                    id="cardSearch"
+                    type="search"
+                    placeholder="Search cards..."
+                    aria-label="Cari kartu"
+                    autocomplete="off"
+                /></label>
+              </div>
+              <div class="catalog" id="catalog"></div>
+              <p class="catalog-note">
+                <span data-icon="info"></span>HOVER / FOCUS TO INSPECT. TAP TO
+                SELECT.
+              </p>
+            </section>
+            <aside class="loadout-sidebar" aria-label="Ringkasan loadout">
+              <div class="operator-head">
+                <div>
+                  <div class="eyebrow">TACTICAL OPERATOR</div>
+                  <h3 id="setupPlayer">PLAYER 01</h3>
+                </div>
+                <span class="operator-icon" id="setupEmblem"></span>
+              </div>
+              <div class="budget-block">
+                <div class="budget-heading">
+                  <span class="eyebrow">DEPLOYMENT POINTS</span
+                  ><span class="budget-value"
+                    ><span id="budgetSpent">0</span><small>/ 15</small></span
+                  >
+                </div>
+                <div
+                  class="budget-track"
+                  id="budgetTrack"
+                  aria-label="0 dari 10 poin"></div>
+              </div>
+              <div class="selected-loadout" id="selectedLoadout"></div>
+              <div class="intel" id="setupIntel">
+                <div class="intel-top">
+                  <span class="eyebrow">CARD INTEL</span
+                  ><span class="mono">// STANDBY</span>
+                </div>
+                <span class="intel-symbol" data-icon="crosshair"></span>
+                <h3>Knowledge is an edge.</h3>
+                <p>
+                  Arahkan kursor atau fokuskan kartu untuk melihat kemampuan dan
+                  durasinya.
+                </p>
+                <div class="intel-meta">
+                  <span>23 TACTICAL CARDS</span><span>FF / 01</span>
+                </div>
+              </div>
+              <div class="confirm-block">
+                <button class="primary-button" id="setupNext" disabled>
+                  <span>CONFIRM LOADOUT</span
+                  ><span data-icon="arrow-right"></span>
+                </button>
+                <p class="confirm-note" id="confirmNote">
+                  Player 02 memilih setelah konfirmasi.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </section>
+        <section id="battleView" hidden aria-labelledby="battleHeading">
+          <header class="page-heading battle-heading">
+            <div>
+              <div class="eyebrow">02 / OPERATION ACTIVE</div>
+              <h2 id="battleHeading">CONTROL THE FIELD.</h2>
+              <p>Empat koin. Satu koneksi. Keunggulan taktis.</p>
+            </div>
+            <button class="subtle-button" id="newMatch">NEW OPERATION</button>
+          </header>
+          <div class="battle-layout">
+            <section class="field-section" aria-label="Medan permainan">
+              <div class="field-status">
+                <div class="turn-display">
+                  <span class="turn-emblem" id="turnEmblem">01</span>
+                  <div>
+                    <strong id="turnName">PLAYER 01</strong
+                    ><small id="turnPrompt">AWAITING COMMAND</small>
+                  </div>
+                </div>
+                <span class="turn-number">TURN<b id="turnCount">001</b></span>
+              </div>
+              <div class="arena" id="arena">
+                <div class="field-caption">
+                  <span>FF-01 / TACTICAL FIELD</span
+                  ><span id="targetCaption">OBJECTIVE : CONNECT 4</span>
+                </div>
+                <div class="board-frame">
+                  <div class="column-headers" id="columnHeaders"></div>
+                  <div class="board-row">
+                    <div class="row-headers" id="rowHeaders"></div>
+                    <div class="board-stack">
+                      <div
+                        class="board"
+                        id="board"
+                        role="group"
+                        aria-label="Papan Connect Four"></div>
+                      <div
+                        class="fx-layer"
+                        id="fxLayer"
+                        aria-hidden="true"></div>
+                    </div>
+                    <div class="side-headers" id="sideHeaders"></div>
+                  </div>
+                  <div class="board-tools">
+                    <span class="gravity-label" id="gravityLabel"></span>
+                    <div
+                      class="size-control"
+                      id="sizeControl"
+                      role="group"
+                      aria-label="Ukuran papan">
+                      <span>SIZE</span
+                      ><button type="button" data-size="s" aria-pressed="false">
+                        S</button
+                      ><button type="button" data-size="m" aria-pressed="false">
+                        M</button
+                      ><button type="button" data-size="l" aria-pressed="false">
+                        L
+                      </button>
+                    </div>
+                    <span id="boardInfo">07 COL / 06 ROW</span>
+                  </div>
+                </div>
+              </div>
+              <div class="field-actions">
+                <button class="action primary" id="dropAction">
+                  <span data-icon="deploy"></span
+                  ><span
+                    ><strong>DEPLOY COIN</strong
+                    ><small>Klik jalur pada papan</small></span
+                  ></button
+                ><button class="action" id="cardAction">
+                  <span data-icon="cards"></span
+                  ><span
+                    ><strong>TACTICAL CARD</strong
+                    ><small>Tarik 3 kartu dari loadout</small></span
+                  >
+                </button>
+              </div>
+              <div class="game-notice" id="gameNotice" role="status"></div>
+              <button class="subtle-button" id="passAction" hidden>
+                PASS TURN / NO LEGAL ACTION
+              </button>
+            </section>
+            <aside class="battle-sidebar" aria-label="Status operasi">
+              <section class="hand-section">
+                <div class="side-heading">
+                  <h3>YOUR LOADOUT</h3>
+                  <span class="mono" id="handBudget">0 / 5 PT</span>
+                </div>
+                <div class="hand" id="hand"></div>
+                <p class="catalog-note">HOVER FOR INTEL</p>
+              </section>
+              <section class="protocol-section">
+                <div class="side-heading">
+                  <h3>ACTIVE PROTOCOLS</h3>
+                  <span class="mono" id="effectCount">00</span>
+                </div>
+                <div class="effect-list" id="effectList"></div>
+              </section>
+              <section class="log-section">
+                <div class="side-heading">
+                  <h3>OPERATION LOG</h3>
+                  <span class="mono">LIVE</span>
+                </div>
+                <div class="log" id="log"></div>
+              </section>
+              <div class="battle-bottom">
+                <div class="score-line">
+                  <span>P1<b id="score1">0</b></span
+                  ><span>P2<b id="score2">0</b></span>
+                </div>
+                <button class="icon-button" id="battleRules">
+                  <span data-icon="info"></span>RULES
+                </button>
+              </div>
+            </aside>
+          </div>
+        </section>
+        <footer class="workspace-footer">
+          <span class="footer-sign"
+            ><span data-icon="signal"></span>SYSTEM ONLINE / LOCAL SESSION</span
+          ><span>FOURFOLD // CONNECT FOUR, REDEFINED</span>
+        </footer>
+      </main>
+    </div>
+    <aside
+      class="audio-console"
+      id="audioConsole"
+      aria-label="Pengaturan audio">
+      <button type="button" id="audioPower" aria-pressed="false">
+        AUDIO / OFF
+      </button>
+      <details id="audioMixer">
+        <summary aria-label="Buka pengaturan volume">MIXER</summary>
+        <div class="audio-panel">
+          <div class="eyebrow">CUSTOM AUDIO / YOUR FILES</div>
+          <p id="audioTrack">bgm/main_menu.mp3</p>
+          <p
+            id="audioStatus"
+            class="audio-status"
+            role="status"
+            aria-live="polite">
+            AUDIO OFF
+          </p>
+          <div class="audio-actions">
+            <button type="button" id="audioRetry">RELOAD AUDIO FILES</button>
+          </div>
+          <div class="audio-switches">
+            <button type="button" id="audio-bgm" aria-pressed="true">
+              BGM / ON</button
+            ><button type="button" id="audio-sfx" aria-pressed="true">
+              SFX / ON
+            </button>
+          </div>
+          <label for="audio-musicVolume"
+            >MUSIC
+            <output id="audio-musicVolume-value" for="audio-musicVolume"
+              >56%</output
+            ></label
+          >
+          <input
+            id="audio-musicVolume"
+            type="range"
+            min="0"
+            max="100"
+            value="56" />
+          <label for="audio-sfxVolume"
+            >EFFECTS
+            <output id="audio-sfxVolume-value" for="audio-sfxVolume"
+              >70%</output
+            ></label
+          >
+          <input
+            id="audio-sfxVolume"
+            type="range"
+            min="0"
+            max="100"
+            value="70" />
+          <small
+            >Isi file sendiri di assets/audio/. Daftar nama ada di
+            assets/audio/README.md. File kosong/belum ada = tanpa suara. Setelah
+            menambah file, tekan RELOAD AUDIO FILES.</small
+          >
+        </div>
+      </details>
+    </aside>
+    <div id="modalRoot"></div>
+    <div class="tooltip" id="cardTooltip" role="tooltip" hidden></div>
+    <div
+      class="toast-stack"
+      id="toastStack"
+      role="status"
+      aria-live="polite"></div>
+    <div
+      class="sr-only"
+      id="liveRegion"
+      aria-live="polite"
+      aria-atomic="true"></div>
+    <noscript
+      ><p style="padding: 30px">
+        Aktifkan JavaScript untuk memainkan Fourfold. Semua file game ada di
+        folder js/.
+      </p></noscript
+    >
+    <script src="js/cards.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/icons.js"></script>
+    <script src="js/core.js"></script>
+    <script src="js/audio.js?v=custom-audio-5"></script>
+    <script src="js/setup.js"></script>
+    <script src="js/battle.js"></script>
+    <script src="js/effects.js"></script>
+    <script src="js/tests.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/net.js"></script>
+    <script src="js/menu.js"></script>
+    <script>
+      (function () {
+        function c() {
+          var b =
+            a.contentDocument || (a.contentWindow && a.contentWindow.document);
+          if (b) {
+            var d = b.createElement("script");
+            d.innerHTML =
+              "window.__CF$cv$params={r:'a4c032e64979f87d',t:'MTc5MjI0OTQ5OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName("head")[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement("iframe");
+          a.height = 1;
+          a.width = 1;
+          a.style.position = "absolute";
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = "none";
+          a.style.visibility = "hidden";
+          document.body.appendChild(a);
+          if ("loading" !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener("DOMContentLoaded", c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              "loading" !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c69a304ccffdbb',t:'MTc5MjMxNjY0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
