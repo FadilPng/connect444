@@ -431,6 +431,53 @@ function runRegressionTests() {
         `${card.name} has no unique visual event`
       );
     });
+  test("Offensive cards declare a cooldown, others do not", () => {
+    for (const c of CARDS) {
+      if (c.category === "offense")
+        assert(
+          Number.isInteger(c.cooldown) && c.cooldown >= 1,
+          `${c.id} needs a cooldown`
+        );
+      else assert(c.cooldown === undefined, `${c.id} should not cool down`);
+    }
+  });
+  test("Offensive cards lock for their own cooldown after use", () => {
+    const g = make(["bottom", "recycle"]);
+    put(g, 5, 0, 1);
+    play(g, "bottom");
+    assert(g.s.cooldowns[1].bottom === 6); // 3 ronde: 7 lalu tick 6
+    assert(g.available(1).includes("bottom")); // milik tetap, cuma terkunci
+    put(g, 5, 3, 2); // papan memungkinkan lagi...
+    assert(!g.usable("bottom", 1)); // ...tapi P1 tetap terkunci
+    assert(g.usable("bottom", 2)); // cooldown P1 tidak menular ke P2
+  });
+  test("Cooldown ticks down and the card becomes usable again", () => {
+    const g = make(["purge", "recycle"]);
+    put(g, 5, 0, 1);
+    put(g, 5, 1, 2);
+    g.s.offer = ["purge"];
+    assert(g.chooseCard("purge") && g.chooseTarget(5, 0));
+    assert(g.s.cooldowns[1].purge === 2 && !g.usable("purge", 1));
+    assert(g.drop(2)); // P2: 2 -> 1
+    assert(!g.usable("purge", 1));
+    assert(g.drop(3)); // P1: 1 -> 0, entri dihapus
+    assert(g.s.cooldowns[1].purge === undefined);
+    assert(g.usable("purge", 1)); // pulih
+  });
+  test("Mimic copies a cooling card but refreshes its cooldown", () => {
+    const g = make(["purge", "mimic"]);
+    put(g, 5, 0, 1);
+    put(g, 5, 1, 2);
+    g.s.offer = ["purge"];
+    assert(g.chooseCard("purge") && g.chooseTarget(5, 0));
+    assert(g.s.cooldowns[1].purge === 2);
+    g.s.offer = ["mimic"];
+    assert(g.chooseCard("mimic"), "mimic should bypass to copy");
+    assert(g.chooseTarget(5, 1));
+    assert(g.s.cooldowns[2].purge === 2); // hasil copy me-refresh cooldown
+    assert(g.s.cooldowns[1].purge === 1);
+    assert(!g.usable("purge", 1) && !g.usable("purge", 2));
+  });
   return {
     passed: results.filter((result) => result.passed).length,
     total: results.length,

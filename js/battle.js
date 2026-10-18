@@ -126,7 +126,10 @@ function renderBattle() {
   $("hand").innerHTML =
     s.loadouts[hp]
       .map((id) =>
-        tileMarkup(CARD_BY_ID[id], { removed: removed.includes(id) })
+        tileMarkup(CARD_BY_ID[id], {
+          removed: removed.includes(id),
+          cooldown: s.cooldowns[hp]?.[id] || 0,
+        })
       )
       .join("") || '<p class="no-effects">LOADOUT EMPTY</p>';
   bindCardInspect($("hand"), "hand");
@@ -458,7 +461,7 @@ function showGuide() {
       "close"
     )}</button><div class="eyebrow">FOURFOLD / FIELD MANUAL</div><h2 id="modalTitle">KNOW THE BATTLEFIELD.</h2><p class="dialog-intro">Connect Four dengan 23 kemampuan taktis. Dua pemain, satu perangkat.</p><div class="guide-grid"><section><h3>01 / THE OBJECTIVE</h3><p>Hubungkan 4 koin milikmu secara horizontal, vertikal, atau diagonal. Pada tiap giliran, deploy satu koin atau gunakan satu kartu dari penawaran acak. Koin netral tidak pernah dihitung.</p></section><section><h3>02 / BUILD YOUR LOADOUT</h3><p>Setiap pemain memiliki anggaran 15 poin, tanpa duplikat. Angka poin juga menentukan kelangkaan: bobot lebih tinggi lebih jarang ditawarkan. Hover, fokus keyboard, atau tekan lama kartu untuk detail.</p></section><section><h3>03 / ${CARD_BY_ID.gravity.name.toUpperCase()}</h3><p>Pilih kiri atau kanan; semua koin bergeser dan jalur drop menjadi baris. Panah menunjukkan sisi masuk yang benar. Setelah 4 giliran berikutnya, gravitasi otomatis kembali ke bawah dan koin jatuh dengan animasi pemulihan.</p></section><section><h3>04 / ${CARD_BY_ID.flip.name.toUpperCase()}</h3><p>Papan tidak berputar dan gravitasi tetap ke bawah. Di tiap kolom, koin paling atas bertukar tempat dengan koin paling bawah, sementara tumpukan koin tetap rapi di dasar kolom. Sebelum drop berikutnya, koin diselesaikan mengikuti gravitasi. Ghost preview memakai posisi final tersebut.</p></section><section><h3>05 / EFFECT DURATION</h3><p>1 ronde = 2 giliran penuh berikutnya, tidak termasuk giliran kartu dimainkan. ${
       CARD_BY_ID.overload.name
-    } tidak mempercepat timer. Bar protokol menunjukkan sisa giliran; animasi dan log memberi tanda saat efek berakhir.</p></section><section><h3>06 / TACTICAL INTERACTIONS</h3><p>${
+    } tidak mempercepat timer. Bar protokol menunjukkan sisa giliran; animasi dan log memberi tanda saat efek berakhir. Setiap kartu offensive juga memiliki cooldown: setelah dipakai, kartu terkunci sesuai jumlah ronde dan tidak ditawarkan lagi sampai pulih.</p></section><section><h3>06 / TACTICAL INTERACTIONS</h3><p>${
       CARD_BY_ID.shield.name
     } menahan semua penghapusan selama durasinya. ${
       CARD_BY_ID.lock.name

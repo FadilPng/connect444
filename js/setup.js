@@ -1,19 +1,28 @@
 "use strict";
 function tileMarkup(card, options = {}) {
+  const max = (card.cooldown || 0) * 2,
+    cd =
+      max > 0
+        ? Math.min(max, Math.max(0, Math.round(options.cooldown || 0)))
+        : 0;
   return `<button type="button" class="card-tile ${
     options.selected ? "selected" : ""
   } ${options.removed ? "removed" : ""} ${
     options.enter ? "card-enter" : ""
-  }" data-card="${
+  }${cd > 0 ? " on-cooldown" : ""}" data-card="${
     card.id
   }" aria-pressed="${!!options.selected}" aria-disabled="${!!options.unavailable}" aria-label="${safe(
-    `${card.name}, ${card.weight} poin`
+    `${card.name}, ${card.weight} poin${
+      cd > 0 ? `, cooldown ${cd} giliran` : ""
+    }`
   )}" style="--card-color:${CATEGORY_COLOR[card.category]};--i:${
     options.index || 0
   }"><span class="card-points"><b>${card.weight}</b> PT</span>${icon(
     card.id,
     "card-icon"
-  )}<span class="card-name">${card.name}</span></button>`;
+  )}<span class="card-name">${card.name}</span>${
+    cd > 0 ? `<span class="cooldown-badge">${cd}T</span>` : ""
+  }</button>`;
 }
 function hideTooltip() {
   $("cardTooltip").hidden = true;
@@ -33,7 +42,7 @@ function showTooltip(tile, card, removed = false) {
       ? `Kartu ini telah dihapus oleh ${CARD_BY_ID.demotion.name} selama sisa match. ` +
           card.desc
       : card.desc
-  )}</p><div class="mono">${card.weight} PT / ${card.duration}</div>`;
+  )}</p><div class="mono">${card.weight} PT / ${card.duration}${card.cooldown ? ` / COOLDOWN ${card.cooldown} RONDE` : ""}</div>`;
   tooltip.hidden = false;
   tile.setAttribute("aria-describedby", "cardTooltip");
   const rect = tile.getBoundingClientRect(),

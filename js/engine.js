@@ -32,6 +32,7 @@ class FourfoldEngine {
         2: [...new Set(loadouts[2] || [])].filter((id) => CARD_BY_ID[id]),
       },
       removed: { 1: [], 2: [] },
+      cooldowns: { 1: {}, 2: {} },
       lastDropId: null,
       previousCard: null,
       offer: null,
@@ -150,15 +151,19 @@ class FourfoldEngine {
       (id) => !this.s.removed[player].includes(id)
     );
   }
-  usable(id, player = this.s.turn, seen = new Set()) {
+  usable(id, player = this.s.turn, seen = new Set(), ignoreCooldown = false) {
     if (!CARD_BY_ID[id] || seen.has(id)) return false;
+    if (!ignoreCooldown && (this.s.cooldowns[player]?.[id] || 0) > 0)
+      return false;
     seen.add(id);
     const coins = this.coins();
     switch (id) {
       case "mimic":
+        // Mimic boleh meng-copy kartu yang sedang cooldown (perilaku lama),
+        // tapi hasil copy me-refresh cooldown kartu tersebut di finishCard.
         return (
           !!this.s.previousCard &&
-          this.usable(this.s.previousCard, player, seen)
+          this.usable(this.s.previousCard, player, seen, true)
         );
       case "expansion":
         return this.s.expansions < 2;
@@ -632,6 +637,9 @@ class FourfoldEngine {
     if (!playing) return;
     this.s.pending = null;
     this.s.previousCard = playing.id;
+    // Cooldown N ronde disimpan 2*N+1: tick di giliran sendiri tidak dihitung.
+    const cooldown = CARD_BY_ID[playing.id].cooldown;
+    if (cooldown) this.s.cooldowns[this.s.turn][playing.id] = cooldown * 2 + 1;
     this.log(
       `P${this.s.turn} menggunakan ${
         playing.requested === "mimic" ? `${CARD_BY_ID.mimic.name} / ` : ""
@@ -795,6 +803,12 @@ class FourfoldEngine {
         `${CARD_BY_ID.shield.name} habis pada ${unshielded.length} koin.`,
         { cells: unshielded }
       );
+    for (const player of [1, 2])
+      for (const [id, turns] of Object.entries(this.s.cooldowns[player])) {
+        // Cooldown habis diam-diam; badge di loadout adalah sinyalnya.
+        if (turns - 1 <= 0) delete this.s.cooldowns[player][id];
+        else this.s.cooldowns[player][id] = turns - 1;
+      }
     this.settle();
   }
   settle() {
@@ -824,6 +838,8 @@ class FourfoldEngine {
       this.s.neutralTurns ||
       this.s.ouroTurns ||
       Object.keys(this.s.locks).length ||
+      Object.keys(this.s.cooldowns[1]).length ||
+      Object.keys(this.s.cooldowns[2]).length ||
       this.coins().some((x) => x.coin.shield)
     );
   }

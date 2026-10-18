@@ -503,6 +503,7 @@ function snapFor(me) {
     o = me === 1 ? 2 : 1;
   c.loadouts[o] = [];
   c.removed[o] = [];
+  c.cooldowns[o] = {};
   if (c.turn !== me) c.offer = null;
   return c;
 }

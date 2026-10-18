@@ -3339,3 +3339,30 @@ html[data-motion="off"] *::after {
     width: 100%;
   }
 }
+
+/* ---------- CARD COOLDOWN ---------- */
+.card-tile .cooldown-badge {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--red);
+  border: 1px solid var(--red);
+  padding: 3px 7px;
+  background: #111416cc;
+}
+.card-tile.on-cooldown .card-icon {
+  opacity: 0.35;
+}
+.card-tile.on-cooldown:hover .card-icon {
+  color: var(--card-color, #e3e6df);
+  transform: none;
+}
+.hand .cooldown-badge {
+  top: 5px;
+  left: 6px;
+  font-size: 8px;
+  padding: 2px 5px;
+}

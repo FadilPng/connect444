@@ -6,6 +6,7 @@ const CARDS = [
     weight: 1,
     category: "offense",
     duration: "INSTANT",
+    cooldown: 2,
     desc: "Hapus satu koin di mana saja, milikmu atau lawan. Koin ber-Shield tidak bisa dihapus.",
   },
   {
@@ -14,6 +15,7 @@ const CARDS = [
     weight: 2,
     category: "offense",
     duration: "INSTANT",
+    cooldown: 1,
     desc: "Hapus koin yang paling dekat dengan koin terakhir yang dijatuhkan. Jika jaraknya sama, pilih salah satunya.",
   },
   {
@@ -22,6 +24,7 @@ const CARDS = [
     weight: 4,
     category: "offense",
     duration: "INSTANT",
+    cooldown: 3,
     desc: "Jatuhkan koin berat, lalu hapus semua koin lain pada baris tempatnya mendarat. Hanya saat gravitasi ke bawah.",
   },
   {
@@ -30,6 +33,7 @@ const CARDS = [
     weight: 4,
     category: "offense",
     duration: "INSTANT",
+    cooldown: 4,
     desc: "Jatuhkan bom yang langsung meledak dalam area 3 x 3, termasuk koin bomnya. Hanya saat gravitasi ke bawah.",
   },
   {
@@ -54,6 +58,7 @@ const CARDS = [
     weight: 4,
     category: "offense",
     duration: "INSTANT",
+    cooldown: 4,
     desc: "Hapus semua koin di baris paling bawah, apa pun arah gravitasi saat ini.",
   },
   {
@@ -62,6 +67,7 @@ const CARDS = [
     weight: 5,
     category: "offense",
     duration: "INSTANT",
+    cooldown: 3,
     desc: "Pilih satu kolom fisik, lalu hapus semua koin di dalamnya. Tetap memilih kolom meskipun gravitasi menyamping.",
   },
   {
@@ -70,6 +76,7 @@ const CARDS = [
     weight: 5,
     category: "offense",
     duration: "INSTANT",
+    cooldown: 8,
     desc: "Jatuhkan bom besar yang langsung menghapus area 5 x 5. Koin ber-Shield bertahan. Hanya saat gravitasi ke bawah.",
   },
   {
@@ -134,6 +141,7 @@ const CARDS = [
     weight: 5,
     category: "offense",
     duration: "SEPANJANG MATCH",
+    cooldown: 3,
     desc: "Hapus satu kartu acak dari loadout lawan selama sisa match. Kartu yang dihapus tidak akan muncul dalam penawaran lagi.",
   },
   {
