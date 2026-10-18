@@ -245,7 +245,7 @@ class FourfoldEngine {
   removeAt(r,c) {
     const coin = this.s.board[r]?.[c];
     if (!coin) return false;
-    if (coin.shield > 0) { this.fx("shield",{cells:[{r,c}],message:"Shield menahan serangan."},"resist"); return false; }
+    if (coin.shield > 0) { this.fx("shield",{cells:[{r,c}],message:`${CARD_BY_ID.shield.name} menahan serangan.`},"resist"); return false; }
     this.s.board[r][c] = null;
     return true;
   }
@@ -301,7 +301,7 @@ class FourfoldEngine {
     if (!playing) return;
     this.s.pending = null;
     this.s.previousCard = playing.id;
-    this.log(`P${this.s.turn} menggunakan ${playing.requested === "mimic" ? "Mimic / " : ""}${CARD_BY_ID[playing.id].name}.`,"card");
+    this.log(`P${this.s.turn} menggunakan ${playing.requested === "mimic" ? `${CARD_BY_ID.mimic.name} / ` : ""}${CARD_BY_ID[playing.id].name}.`,"card");
     this.fx(playing.id,playing.context);
     this.s.playing = null;
     this.settle();
@@ -310,7 +310,7 @@ class FourfoldEngine {
     if (recycle) {
       this.s.recyclePending = true;
       this.s.phase = "drop";
-      if (this.s.enforce === "card") { this.s.enforce = null; this.expire("forced","Forced Action selesai: aksi kartu dipenuhi."); }
+      if (this.s.enforce === "card") { this.s.enforce = null; this.expire("forced",`${CARD_BY_ID.forced.name} selesai: aksi kartu dipenuhi.`); }
       return;
     }
     this.completeAction("card");
@@ -321,10 +321,10 @@ class FourfoldEngine {
       this.s.recyclePending = false;
       this.s.phase = null;
       kind = "card";
-      this.expire("recycle","Recycle selesai: drop pengganti dikerahkan.");
+      this.expire("recycle",`${CARD_BY_ID.recycle.name} selesai: drop pengganti dikerahkan.`);
     }
     this.s.actions.push(kind);
-    if (this.s.enforce === kind) { this.s.enforce = null; this.expire("forced","Forced Action selesai: batasan dilepas."); }
+    if (this.s.enforce === kind) { this.s.enforce = null; this.expire("forced",`${CARD_BY_ID.forced.name} selesai: batasan dilepas.`); }
     if (this.s.overloadActive && this.s.actions.length === 1) {
       const next = kind === "drop" ? "card" : "drop";
       const possible = next === "drop" ? this.hasDrop() : this.available().some(id => this.usable(id));
@@ -334,8 +334,8 @@ class FourfoldEngine {
   }
   endTurn() {
     if (this.s.ended) return;
-    if (this.s.overloadActive) this.expire("overload","Overload selesai: jatah aksi ekstra habis.");
-    if (this.s.enforce) this.expire("forced","Forced Action berakhir.");
+    if (this.s.overloadActive) this.expire("overload",`${CARD_BY_ID.overload.name} selesai: jatah aksi ekstra habis.`);
+    if (this.s.enforce) this.expire("forced",`${CARD_BY_ID.forced.name} berakhir.`);
     this.tickEffects();
     this.checkWin();
     if (this.s.ended) return;
@@ -350,7 +350,7 @@ class FourfoldEngine {
       this.s.forced = null;
       const possible = kind === "drop" ? this.hasDrop() : this.available().some(id => this.usable(id));
       if (possible) this.s.enforce = kind;
-      else this.expire("forced","Forced Action dilepas: aksi yang diwajibkan tidak tersedia.");
+      else this.expire("forced",`${CARD_BY_ID.forced.name} dilepas: aksi yang diwajibkan tidak tersedia.`);
     }
     if (this.s.overloadFor === this.s.turn) { this.s.overloadActive = true; this.s.overloadFor = null; }
     if (!this.hasTemporaryEffects() && !this.hasLegalAction(1) && !this.hasLegalAction(2)) this.endMatch(null,"Kedua pemain tidak memiliki aksi legal.");
@@ -361,27 +361,27 @@ class FourfoldEngine {
     if (this.s.gravityTurns && --this.s.gravityTurns === 0) {
       this.s.gravity = "down";
       this.settle();
-      this.expire("gravity","Gravity Shift habis. Gravitasi kembali ke bawah.",{direction:"down"});
+      this.expire("gravity",`${CARD_BY_ID.gravity.name} habis. Gravitasi kembali ke bawah.`,{direction:"down"});
     }
-    if (this.s.targetTurns && --this.s.targetTurns === 0) { this.s.target = 4; this.expire("threshold","Threshold Shift habis. Target kembali Connect 4.",{target:4}); }
-    if (this.s.neutralTurns && --this.s.neutralTurns === 0) this.expire(this.s.neutralCard,"Colorblind habis. Warna dan pemeriksaan kemenangan dipulihkan.");
+    if (this.s.targetTurns && --this.s.targetTurns === 0) { this.s.target = 4; this.expire("threshold",`${CARD_BY_ID.threshold.name} habis. Target kembali Connect 4.`,{target:4}); }
+    if (this.s.neutralTurns && --this.s.neutralTurns === 0) this.expire(this.s.neutralCard,`${CARD_BY_ID[this.s.neutralCard].name} habis. Warna dan pemeriksaan kemenangan dipulihkan.`);
     if (this.s.ouroTurns && --this.s.ouroTurns === 0) {
       const right = this.s.ouroRight;
       if (right !== null && right < this.width) this.s.board.forEach(row => { [row[0],row[right]] = [row[right],row[0]]; });
       this.s.ouroRight = null;
-      this.expire("ouroboros","Ouroboros habis. Kedua kolom asal dipulihkan.",{right});
+      this.expire("ouroboros",`${CARD_BY_ID.ouroboros.name} habis. Kedua kolom asal dipulihkan.`,{right});
     }
     for (const [key,turns] of Object.entries(this.s.locks)) {
       this.s.locks[key] = turns-1;
       if (this.s.locks[key] <= 0) {
         delete this.s.locks[key];
         const [axis,index] = key.split(":"), lane = Number(index);
-        this.expire("lock",`${axis === "col" ? "Column" : "Row"} Lock habis. Jalur ${lane+1} terbuka.`,{axis,lane,cells:this.laneCells(lane,axis)});
+        this.expire("lock",`${CARD_BY_ID.lock.name} habis. Jalur ${lane+1} terbuka.`,{axis,lane,cells:this.laneCells(lane,axis)});
       }
     }
     const unshielded = [];
     for (const x of this.coins()) if (x.coin.shield > 0 && --x.coin.shield === 0) unshielded.push({r:x.r,c:x.c,id:x.coin.id});
-    if (unshielded.length) this.expire("shield",`Shield habis pada ${unshielded.length} koin.`,{cells:unshielded});
+    if (unshielded.length) this.expire("shield",`${CARD_BY_ID.shield.name} habis pada ${unshielded.length} koin.`,{cells:unshielded});
     this.settle();
   }
   settle() {
@@ -432,18 +432,18 @@ class FourfoldEngine {
   protocols() {
     const p = [];
     const add = (id,name,remaining,max,label = "") => p.push({id,name,remaining:Math.min(remaining,max),max,label});
-    if (this.s.gravityTurns) add("gravity",`Gravity / ${this.s.gravity.toUpperCase()}`,this.s.gravityTurns,4);
-    if (this.s.targetTurns) add("threshold",`Connect ${this.s.target}`,this.s.targetTurns,4);
+    if (this.s.gravityTurns) add("gravity",`${CARD_BY_ID.gravity.name} / ${this.s.gravity.toUpperCase()}`,this.s.gravityTurns,4);
+    if (this.s.targetTurns) add("threshold",`${CARD_BY_ID.threshold.name} / Connect ${this.s.target}`,this.s.targetTurns,4);
     if (this.s.neutralTurns) add(this.s.neutralCard,CARD_BY_ID[this.s.neutralCard].name,this.s.neutralTurns,this.s.neutralMax);
-    if (this.s.ouroTurns) add("ouroboros","Ouroboros",this.s.ouroTurns,4);
+    if (this.s.ouroTurns) add("ouroboros",CARD_BY_ID.ouroboros.name,this.s.ouroTurns,4);
     for (const [key,turns] of Object.entries(this.s.locks)) {
       const [axis,index] = key.split(":");
-      add("lock",`${axis === "row" ? "Row" : "Column"} Lock / ${Number(index)+1}`,turns,2);
+      add("lock",`${CARD_BY_ID.lock.name} / ${axis === "row" ? "R" : "C"}${Number(index)+1}`,turns,2);
     }
-    for (const x of this.coins().filter(x => x.coin.shield)) add("shield",`Shield / ${String.fromCharCode(65+x.c)}${x.r+1}`,x.coin.shield,4);
-    if (this.s.forced || this.s.enforce) add("forced","Forced Action",1,1,this.s.enforce ? "THIS TURN" : "NEXT TURN");
-    if (this.s.overloadFor || this.s.overloadActive) add("overload","Overload",1,1,this.s.overloadActive ? "ACTIVE" : "QUEUED");
-    if (this.s.recyclePending) add("recycle","Recycle",1,1,"DROP READY");
+    for (const x of this.coins().filter(x => x.coin.shield)) add("shield",`${CARD_BY_ID.shield.name} / ${String.fromCharCode(65+x.c)}${x.r+1}`,x.coin.shield,4);
+    if (this.s.forced || this.s.enforce) add("forced",CARD_BY_ID.forced.name,1,1,this.s.enforce ? "THIS TURN" : "NEXT TURN");
+    if (this.s.overloadFor || this.s.overloadActive) add("overload",CARD_BY_ID.overload.name,1,1,this.s.overloadActive ? "ACTIVE" : "QUEUED");
+    if (this.s.recyclePending) add("recycle",CARD_BY_ID.recycle.name,1,1,"DROP READY");
     return p;
   }
 }

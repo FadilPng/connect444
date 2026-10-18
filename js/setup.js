@@ -12,7 +12,7 @@ function hideTooltip() {
 function showTooltip(tile,card,removed = false) {
   hideTooltip();
   const tooltip = $("cardTooltip");
-  tooltip.innerHTML = `<h3>${card.name}</h3><p>${safe(removed ? "Kartu ini telah dihapus oleh Demotion selama sisa match. " + card.desc : card.desc)}</p><div class="mono">${card.weight} PT / ${card.duration}</div>`;
+  tooltip.innerHTML = `<h3>${card.name}</h3><p>${safe(removed ? `Kartu ini telah dihapus oleh ${CARD_BY_ID.demotion.name} selama sisa match. ` + card.desc : card.desc)}</p><div class="mono">${card.weight} PT / ${card.duration}</div>`;
   tooltip.hidden = false;
   tile.setAttribute("aria-describedby","cardTooltip");
   const rect = tile.getBoundingClientRect(), tip = tooltip.getBoundingClientRect();
