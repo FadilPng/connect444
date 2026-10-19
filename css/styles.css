@@ -730,7 +730,6 @@ p {
 }
 .workspace-footer {
   border-top: 1px solid #333b3e;
-  margin-top: 29px;
   padding-top: 14px;
   display: flex;
   justify-content: space-between;
@@ -3176,6 +3175,11 @@ html[data-motion="off"] *::after {
   color: var(--lime);
   margin-top: 8px;
   user-select: all;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.lobby-code:hover {
+  opacity: 0.75;
 }
 .lobby-layout {
   display: grid;
@@ -3207,6 +3211,15 @@ html[data-motion="off"] *::after {
 }
 .player-row.gone {
   opacity: 0.45;
+}
+/* lawan belum bergabung (room sudah dibuat, masih menunggu) */
+.player-row.waiting {
+  opacity: 0.6;
+  border-style: dashed;
+}
+.player-row.waiting .ready-pill {
+  border-color: #59666c;
+  color: #8e969a;
 }
 .player-emblem svg {
   width: 34px;

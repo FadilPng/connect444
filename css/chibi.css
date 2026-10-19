@@ -1,0 +1,103 @@
+/* ============================================================
+   CHIBI LOBBY — gaya
+   Semua aturan di file ini hanya berlaku untuk fitur chibi.
+   Hapus file ini + 2 tag di index.html = fitur hilang total.
+   ============================================================ */
+
+/* ---------- panggung lantai (desktop) ----------
+   Panggung ditaruh SEBELAH tombol READY (grid 2 kolom), bukan di bawahnya.
+   Tujuannya: memanfaatkan ruang kosong di kanan tombol supaya chibi bisa
+   besar tanpa menambah tinggi halaman (penyebab kepotong di layar pendek). */
+   @media (min-width: 900px) {
+    #lobbyView {
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      column-gap: 28px;
+      align-items: start;
+    }
+    #lobbyView > .page-heading,
+    #lobbyView > .lobby-layout {
+      grid-column: 1 / -1;
+    }
+    #lobbyView > .lobby-actions {
+      grid-column: 1;
+      grid-row: 3;
+    }
+    #lobbyView > .chibi-stage {
+      grid-column: 2;
+      grid-row: 3;
+      margin-top: 22px;
+      /* sedikit lebih tinggi dari tombol; tinggi pastinya diatur fitStage() */
+    }
+  }
+  
+  .chibi-stage {
+    position: relative;
+    margin-top: 8px;
+    /* tinggi asli diatur js/chibi.js (fitStage) sesuai sisa layar;
+       nilai ini cuma cadangan sebelum skrip jalan */
+    height: 190px;
+    min-height: 150px;
+    pointer-events: none;
+    /* sedikit vignette supaya karakter "berpijak" */
+    background: radial-gradient(
+      120% 90% at 50% 100%,
+      rgba(200, 242, 74, 0.045) 0%,
+      rgba(200, 242, 74, 0) 60%
+    );
+    border-top: 1px dashed rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+  }
+  
+  .chibi-canvas {
+    position: absolute;
+    inset: 0;
+  }
+  
+  .chibi-canvas canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* layar sempit: lobby sudah penuh -> lantai disembunyikan,
+     karakter tampil sebagai avatar di baris OPERATORS */
+  @media (max-width: 899px) {
+    .chibi-stage {
+      display: none;
+    }
+  }
+  
+  /* ---------- avatar hidup di baris OPERATORS ---------- */
+  .player-emblem.has-chibi {
+    width: 46px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex: 0 0 46px;
+  }
+  
+  /* ikon SVG asli disembunyikan saat avatar aktif (tetap ada di DOM
+     supaya gampang dipulihkan kalau chibi dimatikan) */
+  .player-emblem.has-chibi > svg {
+    display: none;
+  }
+  
+  .player-emblem.has-chibi > canvas {
+    display: block;
+  }
+  
+  /* saat lawan belum masuk, avatar-nya tidak ada -> ikon tetap tampil */
+  .player-row.waiting .player-emblem.has-chibi {
+    opacity: 0.5;
+  }
+  
+  /* ---------- hormati preferensi kurangi gerak ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .chibi-stage {
+      background: none;
+    }
+  }
+  

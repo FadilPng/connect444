@@ -102,6 +102,8 @@ function netClose() {
   if (!n) return;
   n.closing = true;
   ui.net = null;
+  // chibi dibongkar bareng koneksi (leave lobby / lawan kabur)
+  if (window.ChibiLobby) ChibiLobby.destroy();
   clearInterval(n.hb);
   try {
     n.conn?.send({ t: "bye" });
@@ -114,6 +116,35 @@ function netClose() {
   } catch (_) {}
 }
 window.addEventListener("pagehide", () => netSend({ t: "bye" }));
+/* ---------- chibi: penentuan karakter per slot ----------
+   Host yang mengundi (otoritatif), lalu hasilnya dikirim ke tamu
+   lewat pesan {t:"chars"} supaya kedua sisi melihat karakter yang SAMA. */
+function chibiPool() {
+  return window.CHIBI_CONFIG && Array.isArray(CHIBI_CONFIG.chars)
+    ? CHIBI_CONFIG.chars.map((c) => c.id)
+    : [];
+}
+function assignChars(n, includeGuest) {
+  const ids = chibiPool();
+  if (!ids.length) return;
+  if (!n.chars) n.chars = {};
+  if (!n.chars[1]) n.chars[1] = ids[Math.floor(Math.random() * ids.length)];
+  if (includeGuest && !n.chars[2]) {
+    let pick = n.chars[1];
+    for (let i = 0; i < 20 && pick === n.chars[1] && ids.length > 1; i++)
+      pick = ids[Math.floor(Math.random() * ids.length)];
+    n.chars[2] = pick;
+  }
+}
+function chibiPlayers() {
+  const n = ui.net;
+  if (!n || !n.chars) return [];
+  const list = [];
+  if (n.chars[1]) list.push({ slot: 1, char: n.chars[1] });
+  // slot 2 hanya tampil kalau tamu benar-benar sudah bergabung
+  if (n.opp && n.chars[2]) list.push({ slot: 2, char: n.chars[2] });
+  return list;
+}
 function showWait(title, body) {
   showDialog(
     `<div class="eyebrow">ONLINE / STATUS</div><h2 id="modalTitle">${title}</h2><div class="dialog-intro">${body}</div><button class="subtle-button" id="waitLeave">CANCEL</button>`,
@@ -148,17 +179,28 @@ async function netHost(name, tries = 0) {
     mode: "classic",
     lobby: {},
     ready: {},
+    chars: {},
     peer: new Peer(PEER_PREFIX + code, opts),
   });
   n.peer.on("open", () => {
-    showWait(
-      "WAITING FOR OPPONENT.",
-      `<div class="room-code">${code}</div>Bagikan kode ini ke lawanmu. Loadout-mu tetap rahasia.`
-    );
+    // Room siap -> langsung masuk lobi. Tidak perlu menunggu lawan join dulu.
+    assignChars(n, false);
+    goLobby();
+    toast(`Room ${code} dibuat. Bagikan kodenya ke lawan.`);
   });
   n.peer.on("connection", (conn) => {
-    if (n.conn) conn.close();
+    // Satu tamu pada satu waktu. Tapi kalau tamu lama sudah pergi,
+    // koneksi baru diterima -> room yang sama bisa dipakai lagi.
+    if (n.conn && n.conn.open) conn.close();
     else netBind(n, conn);
+  });
+  n.peer.on("disconnected", () => {
+    // Koneksi ke server sinyal putus. Room tidak ditutup: PeerJS bisa
+    // menyambung ulang dengan ID yang sama, jadi kode room tetap berlaku.
+    if (n.closing) return;
+    try {
+      n.peer.reconnect();
+    } catch (_) {}
   });
   n.peer.on("error", (e) => {
     if (e.type === "unavailable-id" && tries < 4) {
@@ -188,6 +230,7 @@ async function netJoin(name, code) {
     mode: "classic",
     lobby: {},
     ready: {},
+    chars: {},
     peer: new Peer(opts),
   });
   n.peer.on("open", () => {
@@ -226,6 +269,7 @@ function netBind(n, conn) {
     });
   }
   conn.on("open", () => {
+    if (n.conn !== conn) return;
     n.last = Date.now();
     n.hb = setInterval(() => {
       if (ui.net !== n) {
@@ -237,13 +281,18 @@ function netBind(n, conn) {
     }, 2000);
     if (!n.host) netSend({ t: "hello", name: n.name });
   });
-  conn.on("data", (m) => netRecv(n, m));
+  conn.on("data", (m) => {
+    if (n.conn === conn) netRecv(n, m);
+  });
   conn.on("iceStateChanged", (st) => {
+    if (n.conn !== conn) return;
     if (st !== "failed" || n.opp) return;
     if (n.host) toast("Koneksi ke tamu gagal. Minta dia coba lagi.");
     else netFail(`Koneksi langsung ke host gagal. ${netDiag(n)}`);
   });
-  conn.on("close", () => netLost(n));
+  conn.on("close", () => {
+    if (n.conn === conn) netLost(n);
+  });
 }
 function netRecv(n, m) {
   if (ui.net !== n || !m || typeof m !== "object") return;
@@ -252,8 +301,18 @@ function netRecv(n, m) {
     case "hello":
       if (n.opp) break;
       n.opp = cleanName(m.name) || "OPPONENT";
-      if (n.host) netSend({ t: "hello", name: n.name });
+      if (n.host) {
+        netSend({ t: "hello", name: n.name });
+        assignChars(n, true);
+        netSend({ t: "chars", chars: n.chars });
+      }
       goLobby();
+      break;
+    case "chars":
+      if (m.chars && typeof m.chars === "object") {
+        n.chars = { 1: m.chars[1] || null, 2: m.chars[2] || null };
+        renderLobby();
+      }
       break;
     case "ready":
       if (n.host && !n.ready[2]) {
@@ -297,8 +356,42 @@ function netRecv(n, m) {
       break;
   }
 }
+/* Tamu keluar -> HOST TETAP DI ROOM.
+   Kode room tidak dibuang, peer tidak di-destroy, slot 2 dikosongkan
+   supaya tamu berikutnya (atau orang yang sama) bisa masuk lagi. */
+function hostGuestLeft(n) {
+  if (ui.net !== n || n.closing) return;
+  const was = n.opp;
+  clearInterval(n.hb);
+  n.hb = 0;
+  const old = n.conn;
+  n.conn = null;
+  try {
+    old?.close();
+  } catch (_) {}
+  n.opp = "";
+  n.lobby = { 1: false, 2: false };
+  n.ready = {};
+  if (n.chars) n.chars[2] = null;
+  n.lost = false;
+  n.last = Date.now();
+  // match yang sedang jalan batal, balik ke lobi dengan room yang sama
+  if (ui.game) {
+    ui.game = null;
+    try {
+      clearVisuals();
+    } catch (_) {}
+  }
+  goLobby();
+  toast(
+    `${(was || "Lawan").toUpperCase()} keluar. Room ${n.code} masih terbuka.`
+  );
+}
+
 function netLost(n) {
   if (ui.net !== n || n.closing || n.lost) return;
+  // HOST: tamu pergi bukan akhir dari room. Jangan tutup apa pun.
+  if (n.host) return hostGuestLeft(n);
   n.lost = true;
   clearInterval(n.hb);
   if (!$("lobbyView").hidden) renderLobby();
@@ -312,7 +405,7 @@ function netLost(n) {
     `<div class="eyebrow">ONLINE / OPPONENT LEFT</div><h2 id="modalTitle">${name} MUNDUR.</h2><p class="dialog-intro">${
       playing
         ? "Lawanmu keluar di tengah pertandingan. Kamu menang walkover."
-        : "Lawanmu keluar sebelum pertandingan dimulai."
+        : "Host menutup room, atau koneksi ke host terputus."
     }</p><button class="primary-button" id="lostMenu"><span>BACK TO MAIN MENU</span>${icon(
       "arrow-right"
     )}</button>`,
@@ -372,39 +465,63 @@ function goLobby() {
   n.ready = {};
   setView("lobby");
   renderLobby();
-  document.querySelector(
-    ".session-label"
-  ).lastChild.textContent = `ONLINE / VS ${(n.opp || "?").toUpperCase()}`;
+  document.querySelector(".session-label").lastChild.textContent = n.opp
+    ? `ONLINE / VS ${n.opp.toUpperCase()}`
+    : "ONLINE / MENUNGGU LAWAN";
   $("lobbyReady").onclick = toggleLobbyReady;
+  // host menutup room, tamu keluar dari room -> beda makna, beda label
+  $("lobbyLeave").textContent = n.host ? "TUTUP ROOM" : "LEFT ROOM";
   $("lobbyLeave").onclick = () => {
     netClose();
     showMenu();
   };
-  announce(`Masuk lobi online melawan ${n.opp}.`);
+  // kode room bisa diklik untuk disalin (host perlu membagikannya)
+  const codeEl = $("lobbyCode");
+  if (codeEl) {
+    codeEl.title = "Klik untuk salin kode room";
+    codeEl.style.cursor = "pointer";
+    codeEl.onclick = async () => {
+      const txt = (n.code || "").toUpperCase();
+      if (!txt) return;
+      try {
+        await navigator.clipboard.writeText(txt);
+        toast(`Kode ${txt} disalin.`);
+      } catch (_) {
+        toast(`Kode room: ${txt}`);
+      }
+    };
+  }
+  announce(
+    n.opp
+      ? `Masuk lobi online melawan ${n.opp}.`
+      : "Room dibuat. Menunggu lawan bergabung."
+  );
 }
 function lobbyPlayerRow(p) {
   const n = ui.net,
     you = p === n.me,
-    gone = !you && (n.lost || !n.opp),
-    ready = !gone && !!n.lobby[p];
+    gone = !you && !!n.lost,                      // benar-benar keluar
+    waiting = !you && !n.opp && !n.lost,          // belum pernah masuk
+    ready = !gone && !waiting && !!n.lobby[p];
+  const pill = gone ? "LEFT" : waiting ? "MENUNGGU" : ready ? "READY" : "NOT READY";
+  const name = waiting ? "MENUNGGU LAWAN…" : you ? n.name : n.opp || "WAITING...";
   return `<div class="player-row ${you ? "you" : ""} ${ready ? "ready" : ""} ${
     gone ? "gone" : ""
-  }"><span class="player-emblem" style="color:${
+  } ${waiting ? "waiting" : ""}"><span class="player-emblem" data-slot="${p}" style="color:${
     p === 1 ? "var(--cyan)" : "var(--orange)"
   }">${icon(`operator${p}`)}</span><span class="player-meta"><strong>${safe(
-    (you ? n.name : n.opp || "WAITING...").toUpperCase()
+    name.toUpperCase()
   )}</strong><small>P0${p} / ${p === 1 ? "HOST" : "GUEST"}${
-    you ? " / YOU" : ""
-  }</small></span><span class="ready-pill">${
-    gone ? "LEFT" : ready ? "READY" : "NOT READY"
-  }</span></div>`;
+    you ? " / YOU" : waiting ? " / BELUM MASUK" : ""
+  }</small></span><span class="ready-pill">${pill}</span></div>`;
 }
 function renderLobby() {
   const n = ui.net;
   if (!n || $("lobbyView").hidden) return;
   $("lobbyCode").textContent = n.code || "-----";
-  const oppGone = n.lost || !n.opp;
-  $("lobbyCount").textContent = oppGone ? "1 / 2" : "2 / 2";
+  const oppGone = !!n.lost;
+  const oppWaiting = !n.opp && !n.lost;   // room dibuat, lawan belum gabung
+  $("lobbyCount").textContent = oppGone || oppWaiting ? "1 / 2" : "2 / 2";
   $("lobbyPlayers").innerHTML = lobbyPlayerRow(1) + lobbyPlayerRow(2);
   $("lobbyModes").innerHTML = LOBBY_MODES.map((m) => {
     const active = n.mode === m.id;
@@ -436,8 +553,10 @@ function renderLobby() {
       };
     });
   const myReady = !!n.lobby[n.me],
-    oppReady = !oppGone && !!n.lobby[n.me === 1 ? 2 : 1];
-  $("lobbyStatus").textContent = oppGone
+    oppReady = !oppGone && !oppWaiting && !!n.lobby[n.me === 1 ? 2 : 1];
+  $("lobbyStatus").textContent = oppWaiting
+    ? "MENUNGGU LAWAN BERGABUNG — BAGIKAN KODE ROOM DI ATAS."
+    : oppGone
     ? "OPPONENT LEFT THE ROOM."
     : myReady && oppReady
     ? "BOTH READY. STARTING OPERATION..."
@@ -446,10 +565,18 @@ function renderLobby() {
     : oppReady
     ? "OPPONENT READY. TEKAN READY BILA SIAP."
     : "TEKAN READY BILA SIAP BERMAIN.";
-  $("lobbyReady").disabled = oppGone;
+  $("lobbyReady").disabled = oppGone || oppWaiting;
   $("lobbyReady").innerHTML = myReady
     ? `<span>UNREADY</span>${icon("close")}`
     : `<span>READY</span>${icon("check")}`;
+
+  // karakter chibi mengikuti isi room
+  if (window.ChibiLobby) {
+    ChibiLobby.update({
+      players: chibiPlayers(),
+      ready: { 1: !!n.lobby[1], 2: !!n.lobby[2] },
+    });
+  }
 }
 function toggleLobbyReady() {
   const n = ui.net;

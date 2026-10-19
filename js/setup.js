@@ -250,6 +250,8 @@ function setView(name) {
   view.classList.remove("view-enter");
   void view.offsetWidth;
   view.classList.add("view-enter");
+  // chibi hanya hidup di lobby; keluar lobby = bebaskan konteks WebGL
+  if (name !== "lobby" && window.ChibiLobby) ChibiLobby.destroy();
 }
 function startOperation() {
   clearVisuals();
