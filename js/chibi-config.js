@@ -47,10 +47,8 @@ const CHIBI_CONFIG = {
     // tinggi karakter = tinggi panggung x desktopScale, dijepit minPx..maxPx.
     // Panggungnya sendiri ikut memanjang sesuai sisa layar (stageMin..stageMax),
     // jadi di monitor tinggi chibi otomatis besar tanpa pernah kepotong.
-    // "unit"  : skala dihitung dari unit skeleton (proporsi asli karakter,
-    //           karakter yang di-skeleton-nya lebih tinggi tampil lebih tinggi)
-    // "equal" : semua karakter dipaksa sama tinggi dalam piksel
-    sizeBasis: "unit",
+    // Semua karakter memakai tinggi acuan yang sama (BODY_UNITS di chibi.js),
+    // jadi tingginya di layar selalu sama.
     desktopScale: 0.96,
     minPx: 120,
     maxPx: 330,
@@ -69,11 +67,6 @@ const CHIBI_CONFIG = {
                  Kecil = jalannya pelan, besar = cepat. Ini yang paling sering diubah.
      idles     : animasi diam (dipilih acak)
      special   : animasi special
-     boxes     : kotak visual tiap animasi (satuan skeleton, hasil ukur).
-                 t = titik teratas (negatif = ke atas), b = titik terbawah.
-                 Dipakai untuk skala + titik pijak supaya karakter tidak
-                 kepotong dan ukurannya konsisten antar karakter.
-                 Kalau animasi baru dipakai, ukur dulu lalu tambahkan di sini.
      speedScale: (opsional) pengali tambahan. Kalau diubah, kaki akan selip sedikit.
   */
   chars: [
