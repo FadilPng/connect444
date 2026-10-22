@@ -28,11 +28,14 @@ $("catalog").onclick = (event) => {
     return;
   }
   hideTooltip();
-  toggleCard(tile.dataset.card);
+  if (ui.phase === "ban") toggleBan(tile.dataset.card);
+  else toggleCard(tile.dataset.card);
 };
 $("selectedLoadout").onclick = (event) => {
   const button = event.target.closest("[data-remove]");
-  if (button) toggleCard(button.dataset.remove);
+  if (!button) return;
+  if (ui.phase === "ban") toggleBan(button.dataset.remove);
+  else toggleCard(button.dataset.remove);
 };
 document.querySelectorAll("[data-filter]").forEach((button) => {
   button.onclick = () => {
@@ -46,6 +49,10 @@ $("cardSearch").addEventListener("input", (event) => {
   renderCatalog();
 });
 $("setupNext").onclick = () => {
+  if (ui.phase === "ban") {
+    lockBan();
+    return;
+  }
   if (!ui.loadouts[ui.player].length) return;
   if (ui.net) {
     netConfirm();

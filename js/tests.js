@@ -478,6 +478,16 @@ function runRegressionTests() {
     assert(g.s.cooldowns[1].purge === 1);
     assert(!g.usable("purge", 1) && !g.usable("purge", 2));
   });
+  test("Banned cards dibuang dari loadout kedua pemain", () => {
+    const g = new FourfoldEngine(
+      { 1: ["purge", "recycle"], 2: ["purge", "recycle"] },
+      () => 0,
+      ["purge"]
+    );
+    assert(!g.s.loadouts[1].includes("purge"), "ban masih ada di loadout 1");
+    assert(!g.s.loadouts[2].includes("purge"), "ban masih ada di loadout 2");
+    assert(g.s.banned.includes("purge"), "state.banned kosong");
+  });
   return {
     passed: results.filter((result) => result.passed).length,
     total: results.length,

@@ -110,6 +110,14 @@ const CHIBI_CONFIG = {
       idles: ["Relax", "Sit"],
       special: "Special",
     },
+    {
+      id: "hberry",
+      label: "HonneyBerry / Epoque",
+      walk: "Move",
+      walkUnits: 130,
+      idles: ["Relax", "Sit"],
+      special: "Special",
+    },
   ],
 };
 

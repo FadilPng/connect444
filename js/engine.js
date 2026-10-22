@@ -6,7 +6,8 @@ class FourfoldEngine {
       1: ["gravity", "flip", "purge"],
       2: ["gravity", "flip", "purge"],
     },
-    random = Math.random
+    random = Math.random,
+    banned = []
   ) {
     this.random = random;
     this.error = "";
@@ -27,9 +28,14 @@ class FourfoldEngine {
       ouroRight: null,
       locks: {},
       expansions: 0,
+      banned: [...new Set(banned || [])].filter((id) => CARD_BY_ID[id]),
       loadouts: {
-        1: [...new Set(loadouts[1] || [])].filter((id) => CARD_BY_ID[id]),
-        2: [...new Set(loadouts[2] || [])].filter((id) => CARD_BY_ID[id]),
+        1: [...new Set(loadouts[1] || [])].filter(
+          (id) => CARD_BY_ID[id] && !banned.includes(id)
+        ),
+        2: [...new Set(loadouts[2] || [])].filter(
+          (id) => CARD_BY_ID[id] && !banned.includes(id)
+        ),
       },
       removed: { 1: [], 2: [] },
       cooldowns: { 1: {}, 2: {} },
@@ -51,6 +57,11 @@ class FourfoldEngine {
       winningCells: [],
       log: [],
     };
+    if (this.s.banned.length)
+      this.log(
+        `Kartu di-ban: ${this.s.banned.map((id) => CARD_BY_ID[id].name).join(", ")}.`,
+        "system"
+      );
     this.log("Operasi dimulai. Player 01 bergerak lebih dulu.", "system");
   }
   get height() {

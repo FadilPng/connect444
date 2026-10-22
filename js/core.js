@@ -9,6 +9,11 @@ const ui = {
   query: "",
   player: 1,
   loadouts: { 1: [], 2: [] },
+  // mode "ban": pemain memilih 2 kartu untuk di-ban sebelum loadout
+  phase: "loadout",
+  banPick: [],
+  bans: { 1: [], 2: [] },
+  banLocked: false,
   inspected: null,
   modal: null,
   closeable: false,

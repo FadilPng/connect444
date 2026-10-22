@@ -730,6 +730,7 @@ p {
 }
 .workspace-footer {
   border-top: 1px solid #333b3e;
+  margin-top: 29px;
   padding-top: 14px;
   display: flex;
   justify-content: space-between;
@@ -3378,4 +3379,145 @@ html[data-motion="off"] *::after {
   left: 6px;
   font-size: 8px;
   padding: 2px 5px;
+}
+
+/* ------------------------------------------------------------
+   CARD BAN (mode "ban")
+   Fase ban memakai layar setup yang sama: katalog jadi papan ban,
+   blok poin disembunyikan, tombol utama jadi merah.
+   ------------------------------------------------------------ */
+#setupView.ban-mode .budget-block {
+  display: none;
+}
+#setupView.ban-mode #setupNext {
+  background: var(--red);
+  color: #1e1412;
+}
+#setupView.ban-mode #setupNext:hover:not(:disabled) {
+  background: #f39489;
+}
+#setupView.ban-mode .card-tile.ban-pick {
+  background: var(--red);
+  border-color: var(--red);
+  color: #1e1412;
+}
+#setupView.ban-mode .card-tile.ban-pick .card-icon,
+#setupView.ban-mode .card-tile.ban-pick .card-points,
+#setupView.ban-mode .card-tile.ban-pick .card-points b {
+  color: #241614;
+}
+#setupView.ban-mode .card-tile.ban-pick::before {
+  background: #3a1a16;
+  opacity: 1;
+}
+.ban-mark {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+.ban-mark::before,
+.ban-mark::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #241614;
+  transform-origin: center;
+}
+.ban-mark::before {
+  transform: rotate(45deg);
+}
+.ban-mark::after {
+  transform: rotate(-45deg);
+}
+/* kartu yang sudah di-ban: tidak bisa dipilih di fase loadout */
+.card-tile.banned {
+  opacity: 0.34;
+  background: repeating-linear-gradient(
+    -45deg,
+    #252a2d 0 8px,
+    #191f21 8px 9px
+  );
+  border-style: dashed;
+}
+.card-tile.banned:hover,
+.card-tile.banned:focus-visible {
+  transform: none;
+  background: repeating-linear-gradient(
+    -45deg,
+    #2a3134 0 8px,
+    #1b2224 8px 9px
+  );
+  border-color: #7a4a44;
+  opacity: 0.6;
+}
+.card-tile.banned .card-name {
+  text-decoration: line-through;
+  color: #a08f8c;
+}
+.card-tile.banned .card-icon {
+  color: #7b625f;
+}
+.ban-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 3px 6px;
+  background: #5a251f;
+  color: #f0c7c1;
+  border: 1px solid #8b3a31;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.09em;
+  line-height: 1;
+}
+/* sidebar fase ban */
+.ban-item {
+  border-color: #6d332c;
+  background: #2a1c1a;
+}
+.ban-item svg {
+  color: #e4887c;
+}
+.ban-status {
+  margin-top: 10px;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: #d08a80;
+  line-height: 1.5;
+}
+
+/* Mode yang belum aktif: tetap bisa diklik supaya ada penjelasan,
+   bukan tombol mati yang diam saja. */
+.gmode-card[aria-disabled="true"] {
+  cursor: not-allowed;
+  border-style: dashed;
+}
+.gmode-card[aria-disabled="true"] .gmode-glyph svg {
+  color: #59666c;
+}
+.gmode-card[aria-disabled="true"]:hover {
+  border-color: #59666c;
+}
+
+/* Kartu mode untuk tamu: terlihat tapi terkunci (host yang memilih). */
+.gmode-card.locked {
+  cursor: not-allowed;
+}
+.gmode-card.locked .gmode-text small {
+  color: #73848b;
+}
+.gmode-card.locked:not(.active) {
+  opacity: 0.72;
+}
+.gmode-card.locked:hover {
+  border-color: var(--line);
+}
+.gmode-card.locked.active:hover {
+  border-color: var(--lime);
 }

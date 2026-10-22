@@ -1,6 +1,10 @@
 "use strict";
 /* ---------- ONLINE (WebRTC via PeerJS, tanpa database) ---------- */
 const PEER_PREFIX = "fourfold-";
+// Penanda build: ketik FOURFOLD_LOBBY_BUILD di console. Kalau undefined,
+// berarti js/net.js lama masih kepakai (cache) dan tombol BAN CARD mati.
+const FOURFOLD_LOBBY_BUILD = "ban-2";
+window.FOURFOLD_LOBBY_BUILD = FOURFOLD_LOBBY_BUILD;
 // Tanpa TURN, koneksi P2P sering gagal di jaringan seluler/kantor (NAT ketat) dan muncul "waktu habis".
 // Open Relay di bawah gratis tapi publik. Untuk lebih stabil, buat akun gratis di metered.ca lalu ganti username/credential.
 const TURN_USER = "openrelayproject",
@@ -83,12 +87,33 @@ function pname(n) {
 function mine() {
   return !ui.net || ui.game?.s.turn === ui.net.me;
 }
+function netBanned() {
+  const b = (ui.net && ui.net.bans) || {},
+    l = ui.bans || {};
+  return [
+    ...new Set([
+      ...(b[1] || []),
+      ...(b[2] || []),
+      ...(l[1] || []),
+      ...(l[2] || []),
+    ]),
+  ];
+}
+function validBanList(l) {
+  return (
+    Array.isArray(l) &&
+    l.length === BAN_COUNT &&
+    new Set(l).size === l.length &&
+    l.every((id) => CARD_BY_ID[id])
+  );
+}
 function validLoadout(l) {
+  const banned = netBanned();
   return (
     Array.isArray(l) &&
     l.length > 0 &&
     new Set(l).size === l.length &&
-    l.every((id) => CARD_BY_ID[id]) &&
+    l.every((id) => CARD_BY_ID[id] && !banned.includes(id)) &&
     l.reduce((s, id) => s + CARD_BY_ID[id].weight, 0) <= 15
   );
 }
@@ -179,6 +204,7 @@ async function netHost(name, tries = 0) {
     mode: "classic",
     lobby: {},
     ready: {},
+    bans: {},
     chars: {},
     peer: new Peer(PEER_PREFIX + code, opts),
   });
@@ -230,6 +256,7 @@ async function netJoin(name, code) {
     mode: "classic",
     lobby: {},
     ready: {},
+    bans: {},
     chars: {},
     peer: new Peer(opts),
   });
@@ -303,6 +330,9 @@ function netRecv(n, m) {
       n.opp = cleanName(m.name) || "OPPONENT";
       if (n.host) {
         netSend({ t: "hello", name: n.name });
+        // mode bisa sudah dipilih host sebelum tamu masuk -> ikut dikirim
+        if (n.mode && n.mode !== "classic")
+          netSend({ t: "mode", mode: n.mode });
         assignChars(n, true);
         netSend({ t: "chars", chars: n.chars });
       }
@@ -343,6 +373,32 @@ function netRecv(n, m) {
         renderLobby();
       }
       break;
+    // tamu mengunci ban -> host menyimpan, lalu memfinalkan kalau host juga sudah
+    case "ban":
+      if (n.host && n.mode === "ban" && validBanList(m.bans)) {
+        n.bans = n.bans || {};
+        n.bans[2] = [...m.bans];
+        if (n.bans[1] && n.bans[1].length) finishBanPhase();
+        else if (ui.phase === "ban") {
+          renderSetup();
+          toast("Lawan sudah mengunci ban.");
+        }
+      }
+      break;
+    // host membagikan hasil akhir kedua ban
+    case "bans":
+      if (!n.host && m.bans && typeof m.bans === "object") {
+        const ok =
+          Array.isArray(m.bans[1]) &&
+          Array.isArray(m.bans[2]) &&
+          validBanList(m.bans[1]) &&
+          validBanList(m.bans[2]);
+        if (ok) {
+          n.bans = { 1: [...m.bans[1]], 2: [...m.bans[2]] };
+          applyBans(m.bans);
+        }
+      }
+      break;
     case "act":
       if (n.host) hostAct(m);
       break;
@@ -372,6 +428,7 @@ function hostGuestLeft(n) {
   n.opp = "";
   n.lobby = { 1: false, 2: false };
   n.ready = {};
+  n.bans = {};
   if (n.chars) n.chars[2] = null;
   n.lost = false;
   n.last = Date.now();
@@ -390,29 +447,36 @@ function hostGuestLeft(n) {
 
 function netLost(n) {
   if (ui.net !== n || n.closing || n.lost) return;
-  // HOST: tamu pergi bukan akhir dari room. Jangan tutup apa pun.
+  // HOST: tamu pergi bukan akhir dari room. Room tetap terbuka.
   if (n.host) return hostGuestLeft(n);
   n.lost = true;
   clearInterval(n.hb);
-  if (!$("lobbyView").hidden) renderLobby();
-  const name = (n.opp || "LAWAN").toUpperCase();
-  if (ui.game?.s.ended) {
-    toast(`${name} meninggalkan room.`);
-    return;
-  }
-  const playing = !!ui.game;
+  const name = (n.opp || "HOST").toUpperCase();
+  const ended = !!(ui.game && ui.game.s.ended);
+  const playing = !!ui.game && !ended;
+  // TAMU: tanpa host room ini mati (host = server-nya). Keluarkan paksa ke
+  // menu utama. Dulu, kalau match sudah selesai, tamu cuma diberi toast dan
+  // tertinggal di lobby/pertandingan yang lawannya sudah tidak ada.
+  ui.game = null;
+  try {
+    clearVisuals();
+  } catch (_) {}
+  showMenu();
   showDialog(
-    `<div class="eyebrow">ONLINE / OPPONENT LEFT</div><h2 id="modalTitle">${name} MUNDUR.</h2><p class="dialog-intro">${
-      playing
-        ? "Lawanmu keluar di tengah pertandingan. Kamu menang walkover."
+    `<div class="eyebrow">ONLINE / ROOM CLOSED</div><h2 id="modalTitle">${name} KELUAR.</h2><p class="dialog-intro">${
+      ended
+        ? "Ronde sudah selesai dan host menutup room. Room ini tidak bisa dipakai lagi."
+        : playing
+        ? "Host keluar di tengah pertandingan, jadi pertandingan dihentikan."
         : "Host menutup room, atau koneksi ke host terputus."
-    }</p><button class="primary-button" id="lostMenu"><span>BACK TO MAIN MENU</span>${icon(
-      "arrow-right"
+    } Kamu dikeluarkan dari room.</p><button class="primary-button" id="lostMenu"><span>OK</span>${icon(
+      "check"
     )}</button>`,
     "lost",
     false
   );
-  $("lostMenu").onclick = showMenu;
+  $("lostMenu").onclick = () => closeDialog();
+  toast(`${name} keluar. Kamu dikeluarkan dari room.`);
 }
 function goSetup() {
   menu.hidden = true;
@@ -421,9 +485,11 @@ function goSetup() {
   // Reset penanda siap (lobi + loadout) supaya match berikutnya mulai bersih.
   ui.net.ready = {};
   ui.net.lobby = { 1: false, 2: false };
-  beginSetup();
+  ui.net.bans = {};
   ui.player = ui.net.me;
-  renderSetup(true);
+  // mode ban -> satu tahap tambahan sebelum loadout
+  if (ui.net.mode === "ban") beginBanPhase();
+  else beginSetup();
   document.querySelector(
     ".session-label"
   ).lastChild.textContent = `ONLINE / VS ${ui.net.opp.toUpperCase()}`;
@@ -443,9 +509,9 @@ const LOBBY_MODES = [
   {
     id: "ban",
     name: "BAN CARD",
-    desc: "Kedua pemain mem-ban kartu. Segera hadir.",
+    desc: "Masing-masing mem-ban 2 kartu sebelum menyusun loadout.",
     glyph: "close",
-    enabled: false,
+    enabled: true,
   },
   {
     id: "cardout",
@@ -455,6 +521,35 @@ const LOBBY_MODES = [
     enabled: false,
   },
 ];
+/* Pilih mode di lobby. Dipisah supaya bisa dipanggil dari delegasi klik
+   maupun dari console saat mengetes. */
+function pickLobbyMode(id) {
+  const n = ui.net;
+  if (!n) return;
+  // mode ditentukan host; tamu hanya menerima
+  if (!n.host) {
+    toast("Game mode ditentukan host.");
+    announce("Game mode hanya bisa dipilih host.");
+    return;
+  }
+  const mode = LOBBY_MODES.find((m) => m.id === id);
+  if (!mode) return;
+  if (!mode.enabled) {
+    toast(`${mode.name} belum aktif di build ini.`);
+    return;
+  }
+  if (n.mode === mode.id) {
+    toast(`Mode ${mode.name} sudah aktif.`);
+    return;
+  }
+  n.mode = mode.id;
+  netSend({ t: "mode", mode: mode.id });
+  console.info(`[lobby] mode -> ${mode.id}`);
+  renderLobby();
+  toast(`Mode: ${mode.name}.`);
+  announce(`Mode permainan: ${mode.name}.`);
+}
+
 function goLobby() {
   closeDialog(false);
   menu.hidden = true;
@@ -463,6 +558,11 @@ function goLobby() {
   const n = ui.net;
   n.lobby = { 1: false, 2: false };
   n.ready = {};
+  n.bans = {};
+  ui.phase = "loadout";
+  ui.banPick = [];
+  ui.banLocked = false;
+  ui.bans = { 1: [], 2: [] };
   setView("lobby");
   renderLobby();
   document.querySelector(".session-label").lastChild.textContent = n.opp
@@ -523,35 +623,45 @@ function renderLobby() {
   const oppWaiting = !n.opp && !n.lost;   // room dibuat, lawan belum gabung
   $("lobbyCount").textContent = oppGone || oppWaiting ? "1 / 2" : "2 / 2";
   $("lobbyPlayers").innerHTML = lobbyPlayerRow(1) + lobbyPlayerRow(2);
+  const hostPicks = !!n.host;
   $("lobbyModes").innerHTML = LOBBY_MODES.map((m) => {
     const active = n.mode === m.id;
+    const locked = !hostPicks ? "guest" : m.enabled ? "" : "soon";
     return `<button type="button" class="gmode-card ${
       active ? "active" : ""
-    }" data-modepick="${m.id}" ${
-      m.enabled ? "" : "disabled"
+    } ${locked ? "locked" : ""}" data-modepick="${m.id}" ${
+      locked ? `aria-disabled="true" data-locked="${locked}"` : ""
     } aria-pressed="${active}"><span class="gmode-glyph">${icon(
       m.glyph
     )}</span><span class="gmode-text"><strong>${m.name}</strong><small>${
       m.desc
     }</small></span>${
-      m.enabled
-        ? active
+      active
+        ? hostPicks
           ? '<span class="gmode-tag on">ACTIVE</span>'
-          : ""
-        : '<span class="gmode-tag">SOON</span>'
+          : '<span class="gmode-tag on">HOST PICK</span>'
+        : locked === "soon"
+        ? '<span class="gmode-tag">SOON</span>'
+        : ""
     }</button>`;
   }).join("");
-  $("lobbyModes")
-    .querySelectorAll("[data-modepick]")
-    .forEach((button) => {
-      button.onclick = () => {
-        const mode = LOBBY_MODES.find((m) => m.id === button.dataset.modepick);
-        if (!mode?.enabled || ui.net.mode === mode.id) return;
-        ui.net.mode = mode.id;
-        netSend({ t: "mode", mode: mode.id });
-        renderLobby();
-      };
-    });
+  // keterangan kecil di judul panel: siapa yang menentukan mode
+  const modeHead = document.querySelector(
+    '.lobby-panel[aria-label="Mode permainan"] .side-heading .mono'
+  );
+  if (modeHead) modeHead.textContent = hostPicks ? "KAMU YANG PILIH" : "DIPILIH HOST";
+  // Delegasi di panel (bukan per tombol) supaya tetap jalan walau panel
+  // digambar ulang. Tombol disabled tidak memicu event sama sekali, jadi
+  // ketahuan lewat elementFromPoint -> diberi pesan yang jelas.
+  $("lobbyModes").onclick = (event) => {
+    let card = event.target.closest?.("[data-modepick]");
+    if (!card) {
+      const el = document.elementFromPoint(event.clientX, event.clientY);
+      card = el && el.closest ? el.closest("[data-modepick]") : null;
+      if (!card) return;
+    }
+    pickLobbyMode(card.dataset.modepick);
+  };
   const myReady = !!n.lobby[n.me],
     oppReady = !oppGone && !oppWaiting && !!n.lobby[n.me === 1 ? 2 : 1];
   $("lobbyStatus").textContent = oppWaiting
@@ -618,7 +728,7 @@ function hostStart() {
   const n = ui.net;
   clearVisuals();
   closeDialog(false);
-  ui.game = new FourfoldEngine({ 1: n.ready[1], 2: n.ready[2] });
+  ui.game = new FourfoldEngine({ 1: n.ready[1], 2: n.ready[2] }, Math.random, netBanned());
   ui.resultShown = false;
   ui.focusCell = { r: 0, c: 0 };
   setView("battle");
