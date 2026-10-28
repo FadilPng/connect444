@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#16191a" />
     <meta
       name="description"
-      content="Fourfold, permainan Connect Four dua pemain dengan 23 kartu taktis." />
-    <title>FOURFOLD / Tactical Connection</title>
+      content="Connect 4 / With Card For Some Reason" />
+    <title>Connect 4 / With Card For Some Reason</title>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -35,13 +35,13 @@
       </div>
       <div class="menu-top">
         <span><i class="status-dot"></i>SYSTEM ONLINE</span
-        ><span>FF / VER 1.0</span>
+        ><span>C4 / VER 1.0</span>
       </div>
       <div class="menu-main">
         <header class="menu-title">
           <div class="eyebrow">TACTICAL CONNECTION</div>
-          <h1>FOURFOLD</h1>
-          <p>Empat koin. Satu koneksi. Keunggulan taktis dengan 23 kartu.</p>
+          <h1>Connect 4</h1>
+          <p>With Card for some reason</p>
         </header>
         <nav class="menu-list" aria-label="Pilih mode permainan">
           <button type="button" class="menu-mode" data-mode="local">
@@ -69,7 +69,7 @@
       </div>
       <div class="menu-foot">
         <span>PILIH MODE / TEKAN 1 ATAU 2</span
-        ><span>FOURFOLD // CONNECT FOUR, REDEFINED</span>
+        ><span>CONNECT 4 / WITH CARD FOR SOME REASON</span>
       </div>
     </main>
     <div class="app-shell" id="appShell" hidden>
@@ -77,7 +77,7 @@
         <button
           class="rail-brand"
           id="brandHome"
-          aria-label="Fourfold, kembali ke loadout">
+          aria-label="Connect 4 / With Card For Some Reason, kembali ke loadout">
           <svg viewBox="0 0 44 48" fill="none" aria-hidden="true">
             <path d="M22 2 42 43H2L22 2Z" stroke="#e5e8df" stroke-width="1.5" />
             <path d="M22 12 33 36H11l11-24Z" fill="#d9ed7b" />
@@ -96,23 +96,15 @@
             <span data-icon="grid"></span><span>LOADOUT</span></button
           ><button class="rail-button" id="navBattle" aria-label="Operation">
             <span data-icon="crosshair"></span><span>OPERATION</span></button
-          ><button class="rail-button" id="navGuide" aria-label="Field guide">
-            <span data-icon="book"></span><span>FIELD GUIDE</span>
-          </button>
+          >
         </nav>
         <div class="rail-bottom">
-          <div class="rail-code">FF / TACTICAL CONNECTION</div>
-          <button
-            class="rail-button"
-            id="railMotion"
-            aria-label="Pengaturan animasi">
-            <span data-icon="settings"></span><span>SYSTEM</span>
-          </button>
+          <div class="rail-code">C4 / WITH CARD</div>
         </div>
       </aside>
       <header class="topbar">
         <div class="wordmark">
-          <h1>FOURFOLD</h1>
+          <h1>Connect 4</h1>
           <span class="brand-divider"></span
           ><small>TACTICAL CONNECTION<br />LOCAL MULTIPLAYER SYSTEM</small>
         </div>
@@ -121,9 +113,7 @@
             ><i class="status-dot"></i>LOCAL / 2 OPERATORS</span
           ><button class="icon-button" id="menuButton">
             <span data-icon="arrow-left"></span>MAIN MENU</button
-          ><button class="icon-button" id="guideButton">
-            <span data-icon="book"></span>FIELD GUIDE
-          </button>
+          >
         </div>
       </header>
       <main class="workspace">
@@ -386,9 +376,7 @@
                   <span>P1<b id="score1">0</b></span
                   ><span>P2<b id="score2">0</b></span>
                 </div>
-                <button class="icon-button" id="battleRules">
-                  <span data-icon="info"></span>RULES
-                </button>
+
               </div>
             </aside>
           </div>
@@ -396,7 +384,7 @@
         <footer class="workspace-footer">
           <span class="footer-sign"
             ><span data-icon="signal"></span>SYSTEM ONLINE / LOCAL SESSION</span
-          ><span>FOURFOLD // CONNECT FOUR, REDEFINED</span>
+          ><span>CONNECT 4</span>
         </footer>
       </main>
     </div>
@@ -410,7 +398,7 @@
       <details id="audioMixer">
         <summary aria-label="Buka pengaturan volume">MIXER</summary>
         <div class="audio-panel">
-          <div class="eyebrow">CUSTOM AUDIO / YOUR FILES</div>
+          <div class="eyebrow">AUDIO SETTINGS</div>
           <p id="audioTrack">bgm/main_menu.mp3</p>
           <p
             id="audioStatus"
@@ -453,11 +441,6 @@
             min="0"
             max="100"
             value="70" />
-          <small
-            >Isi file sendiri di assets/audio/. Daftar nama ada di
-            assets/audio/README.md. File kosong/belum ada = tanpa suara. Setelah
-            menambah file, tekan RELOAD AUDIO FILES.</small
-          >
         </div>
       </details>
     </aside>
@@ -473,12 +456,7 @@
       id="liveRegion"
       aria-live="polite"
       aria-atomic="true"></div>
-    <noscript
-      ><p style="padding: 30px">
-        Aktifkan JavaScript untuk memainkan Fourfold. Semua file game ada di
-        folder js/.
-      </p></noscript
-    >
+    <noscript><p style="padding: 30px"></p></noscript>
     <script src="js/cards.js"></script>
     <script src="js/engine.js"></script>
     <script src="js/icons.js"></script>
@@ -493,5 +471,5 @@
     <script src="js/chibi.js"></script>
     <script src="js/net.js"></script>
     <script src="js/menu.js"></script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4cef07689750c16',t:'MTc5MjQwNDA2Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
