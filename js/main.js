@@ -177,9 +177,7 @@ $("hand").onclick = (event) => {
     tile.classList.contains("removed")
   );
 };
-["guideButton", "navGuide", "battleRules", "railMotion"].forEach((id) => {
-  $(id).onclick = showGuide;
-});
+
 ["newMatch", "navLoadout", "brandHome"].forEach((id) => {
   $(id).onclick = () => {
     if (!$("setupView").hidden) window.scrollTo({ top: 0, behavior: "smooth" });
